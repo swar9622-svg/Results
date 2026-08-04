@@ -120,23 +120,56 @@
             border-bottom: 1px solid #e2e8f0;
         }
         .grades-table td {
-            padding: 12px 10px;
+            padding: 10px;
             font-size: 15px;
             text-align: center;
             border-bottom: 1px solid #f1f5f9;
             color: #1e293b;
+            vertical-align: middle;
         }
         .grades-table tr:last-child td {
             border-bottom: none;
         }
-        .total-row {
+        
+        /* تصميم مربعات الدرجة المميزة */
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            min-width: 90px;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+        }
+        .score-badge.pass {
             background-color: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+        .score-badge.fail {
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            animation: pulse 1.5s infinite alternate;
+        }
+        .score-max {
+            font-size: 12px;
+            opacity: 0.75;
+            font-weight: 500;
+        }
+
+        .total-row {
+            background-color: #fafafa;
             font-weight: 700;
         }
-        .total-row td {
-            color: #15803d !important;
-            font-size: 18px !important;
+        .total-row .score-badge {
+            font-size: 17px;
+            padding: 8px 16px;
         }
+
         .error {
             background-color: #fef2f2;
             color: #dc2626;
@@ -182,7 +215,7 @@
             <thead>
                 <tr>
                     <th>المعيار</th>
-                    <th>الدرجة</th>
+                    <th>الدرجة المستحقة</th>
                 </tr>
             </thead>
             <tbody>
@@ -218,6 +251,18 @@
             .catch(err => console.error("خطأ في التحميل:", err));
     };
 
+    // دالة لتنسيق الدرجة وتقييم النصف لتحديد اللون (أحمر أم أخضر)
+    function formatScoreBadge(score, maxScore) {
+        const numScore = parseFloat(score) || 0;
+        const halfScore = maxScore / 2;
+        const statusClass = numScore < halfScore ? 'fail' : 'pass';
+        
+        return `<div class="score-badge ${statusClass}">
+                    <span>${numScore}</span>
+                    <span class="score-max">/ ${maxScore}</span>
+                </div>`;
+    }
+
     function searchStudent() {
         const inputVal = document.getElementById('idInput').value.trim();
         const errorDiv = document.getElementById('errorMsg');
@@ -235,30 +280,31 @@
         if (student) {
             const keys = Object.keys(student);
             
-            // قراءة المادة، الصف، والوحدة ديناميكياً من شيت الأكسل
+            // قراءة المادة، الصف، والوحدة
             const subject = student[keys[3]] || '';
             const gradeLevel = student[keys[4]] || '';
             const unit = student[keys[5]] || '';
 
-            // تحديث العنوان الرئيسي
+            // تحديث العنوان
             mainTitle.innerText = `إشعار درجات الطالب بمادة ${subject} للصف ${gradeLevel} للوحدة ${unit}`;
 
-            // تعبئة بيانات الطالب
+            // تعبئة البيانات الشخصية
             document.getElementById('resName').innerText = student[keys[1]] || '-';
             document.getElementById('resClass').innerText = student[keys[2]] || '-';
             
-            // تعبئة الدرجات مع إضافة "من كذا"
-            const hwVal = student[keys[6]] || '0';
-            const actVal = student[keys[7]] || '0';
-            const partVal = student[keys[8]] || '0';
-            const examVal = student[keys[9]] || '0';
-            const totalVal = student[keys[10]] || '0';
+            // قراءة الدرجات
+            const hwVal = student[keys[6]] || 0;
+            const actVal = student[keys[7]] || 0;
+            const partVal = student[keys[8]] || 0;
+            const examVal = student[keys[9]] || 0;
+            const totalVal = student[keys[10]] || 0;
 
-            document.getElementById('resHw').innerText = `${hwVal} من 10`;
-            document.getElementById('resAct').innerText = `${actVal} من 20`;
-            document.getElementById('resPart').innerText = `${partVal} من 10`;
-            document.getElementById('resExam').innerText = `${examVal} من 20`;
-            document.getElementById('resTotal').innerText = `${totalVal} من 60`;
+            // تطبيق مربع الدرجة والألوان المقترحة (الواجبات: 10، الأنشطة: 20، المشاركة: 10، الاختبار: 20، المجموع: 60)
+            document.getElementById('resHw').innerHTML = formatScoreBadge(hwVal, 10);
+            document.getElementById('resAct').innerHTML = formatScoreBadge(actVal, 20);
+            document.getElementById('resPart').innerHTML = formatScoreBadge(partVal, 10);
+            document.getElementById('resExam').innerHTML = formatScoreBadge(examVal, 20);
+            document.getElementById('resTotal').innerHTML = formatScoreBadge(totalVal, 60);
 
             errorDiv.style.display = 'none';
             studentInfo.style.display = 'block';
