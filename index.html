@@ -51,6 +51,36 @@
         .content {
             padding: 25px 20px;
         }
+        
+        .unit-select-box {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+        .unit-select-box label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+        .unit-select-box select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            outline: none;
+            background-color: #f8fafc;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .unit-select-box select:focus {
+            border-color: #2a5298;
+            background-color: #ffffff;
+        }
+
         .search-box {
             display: flex;
             gap: 8px;
@@ -131,7 +161,7 @@
             border-bottom: none;
         }
         
-        /* تصميم مربعات الدرجة المميزة */
+        /* مربعات الدرجة المميزة */
         .score-badge {
             display: inline-flex;
             align-items: center;
@@ -153,7 +183,6 @@
             background-color: #fef2f2;
             color: #dc2626;
             border: 1px solid #fecaca;
-            animation: pulse 1.5s infinite alternate;
         }
         .score-max {
             font-size: 12px;
@@ -191,12 +220,20 @@
     </div>
     
     <div class="content">
+        <!-- قائمة اختيار الوحدة المكتشفة من الأكسل -->
+        <div class="unit-select-box">
+            <label for="unitSelect">اختر الوحدة الدراسية:</label>
+            <select id="unitSelect" onchange="resetView()">
+                <option value="">جاري تحميل الوحدات...</option>
+            </select>
+        </div>
+
         <div class="search-box">
             <input type="text" id="idInput" placeholder="أدخل رقم السجل المدني...">
             <button onclick="searchStudent()">بحث</button>
         </div>
 
-        <div id="errorMsg" class="error">عفواً، لم يتم العثور على طالب بهذا السجل المدني.</div>
+        <div id="errorMsg" class="error">عفواً، لم يتم العثور على طالب بهذا السجل المدني في هذه الوحدة.</div>
 
         <!-- معلومات الطالب الرئيسية -->
         <div id="studentInfo" class="student-info">
@@ -233,9 +270,9 @@
 </div>
 
 <script>
-    let studentsData = [];
+    let workbookData = null;
 
-    // تحميل ملف الاكسل
+    // تحميل ملف الاكسل واكتشاف الأوراق (Sheets) تلقائياً
     window.onload = function() {
         fetch('data.xlsx')
             .then(res => {
@@ -243,15 +280,30 @@
                 return res.arrayBuffer();
             })
             .then(ab => {
-                const wb = XLSX.read(ab, {type: 'array'});
-                const sheetName = wb.SheetNames[0];
-                const sheet = wb.Sheets[sheetName];
-                studentsData = XLSX.utils.sheet_to_json(sheet, {raw: false, defval: ""});
+                workbookData = XLSX.read(ab, {type: 'array'});
+                const selectEl = document.getElementById('unitSelect');
+                selectEl.innerHTML = '';
+
+                // تعبئة القائمة المنسدلة بجميع أوراق العمل بملف الأكسل
+                workbookData.SheetNames.forEach((sheetName, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = sheetName;
+                    opt.textContent = sheetName;
+                    selectEl.appendChild(opt);
+                });
             })
-            .catch(err => console.error("خطأ في التحميل:", err));
+            .catch(err => {
+                console.error("خطأ في التحميل:", err);
+                document.getElementById('unitSelect').innerHTML = '<option value="">خطأ في تحميل البيانات</option>';
+            });
     };
 
-    // دالة لتنسيق الدرجة وتقييم النصف لتحديد اللون (أحمر أم أخضر)
+    function resetView() {
+        document.getElementById('studentInfo').style.display = 'none';
+        document.getElementById('resultTable').style.display = 'none';
+        document.getElementById('errorMsg').style.display = 'none';
+    }
+
     function formatScoreBadge(score, maxScore) {
         const numScore = parseFloat(score) || 0;
         const halfScore = maxScore / 2;
@@ -265,12 +317,17 @@
 
     function searchStudent() {
         const inputVal = document.getElementById('idInput').value.trim();
+        const selectedSheet = document.getElementById('unitSelect').value;
         const errorDiv = document.getElementById('errorMsg');
         const resultTable = document.getElementById('resultTable');
         const studentInfo = document.getElementById('studentInfo');
         const mainTitle = document.getElementById('mainTitle');
 
-        if (!inputVal) return;
+        if (!inputVal || !workbookData || !selectedSheet) return;
+
+        // قراءة ورقة العمل المحددة من القائمة المنسدلة
+        const sheet = workbookData.Sheets[selectedSheet];
+        const studentsData = XLSX.utils.sheet_to_json(sheet, {raw: false, defval: ""});
 
         const student = studentsData.find(row => {
             const firstKey = Object.keys(row)[0];
@@ -280,10 +337,9 @@
         if (student) {
             const keys = Object.keys(student);
             
-            // قراءة المادة، الصف، والوحدة
             const subject = student[keys[3]] || '';
             const gradeLevel = student[keys[4]] || '';
-            const unit = student[keys[5]] || '';
+            const unit = student[keys[5]] || selectedSheet;
 
             // تحديث العنوان
             mainTitle.innerText = `إشعار درجات الطالب بمادة ${subject} للصف ${gradeLevel} للوحدة ${unit}`;
@@ -299,7 +355,6 @@
             const examVal = student[keys[9]] || 0;
             const totalVal = student[keys[10]] || 0;
 
-            // تطبيق مربع الدرجة والألوان المقترحة (الواجبات: 10، الأنشطة: 20، المشاركة: 10، الاختبار: 20، المجموع: 60)
             document.getElementById('resHw').innerHTML = formatScoreBadge(hwVal, 10);
             document.getElementById('resAct').innerHTML = formatScoreBadge(actVal, 20);
             document.getElementById('resPart').innerHTML = formatScoreBadge(partVal, 10);
