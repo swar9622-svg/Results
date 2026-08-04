@@ -1,1 +1,158 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استعلام عن نتائج الطلاب</title>
+    <!-- مكتبة XLSX لقراءة ملفات الأكسل و CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h2 { color: #2c3e50; margin-bottom: 20px; }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            border-color: #3498db;
+        }
+        button {
+            padding: 12px 25px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover { background-color: #2980b9; }
+        .result-card {
+            display: none;
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+            text-align: right;
+        }
+        .result-card th, .result-card td {
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+        .result-card th {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .error {
+            color: #e74c3c;
+            margin-top: 15px;
+            display: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
 
+<div class="container">
+    <h2>استعلام عن درجات الطالب</h2>
+    <div class="input-group">
+        <input type="text" id="idInput" placeholder="أدخل رقم السجل المدني...">
+        <button onclick="searchStudent()">بحث</button>
+    </div>
+
+    <div id="errorMsg" class="error">لم يتم العثور على طالب بهذا السجل المدني.</div>
+
+    <table id="resultTable" class="result-card">
+        <tbody>
+            <tr><th>اسم الطالب</th><td id="resName"></td></tr>
+            <tr><th>الفصل</th><td id="resClass"></td></tr>
+            <tr><th>الواجبات</th><td id="resHw"></td></tr>
+            <tr><th>الأنشطة</th><td id="resAct"></td></tr>
+            <tr><th>المشاركة</th><td id="resPart"></td></tr>
+            <tr><th>الاختبار</th><td id="resExam"></td></tr>
+            <tr><th>المجموع</th><td id="resTotal" style="font-weight: bold; color: #27ae60;"></td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    let studentsData = [];
+
+    // تحميل ملف البيانات تلقائياً عند فتح الصفحة
+    window.onload = function() {
+        // يمكنك تغيير اسم الملف هنا إذا كان xlsx أو csv
+        fetch('data.csv')
+            .then(res => res.arrayBuffer())
+            .then(ab => {
+                const wb = XLSX.read(ab, {type: 'array'});
+                const sheetName = wb.SheetNames[0];
+                const sheet = wb.Sheets[sheetName];
+                // تحويل الشيت إلى JSON
+                studentsData = XLSX.utils.sheet_to_json(sheet, {raw: false});
+            })
+            .catch(err => {
+                console.error("خطأ في تحميل ملف البيانات:", err);
+            });
+    };
+
+    function searchStudent() {
+        const inputVal = document.getElementById('idInput').value.trim();
+        const errorDiv = document.getElementById('errorMsg');
+        const resultTable = document.getElementById('resultTable');
+
+        if (!inputVal) return;
+
+        // البحث بالاعتماد على أول عمود (السجل المدني)
+        const student = studentsData.find(row => {
+            const idKey = Object.keys(row)[0]; // العمود الأول
+            return String(row[idKey]).trim() === inputVal;
+        });
+
+        if (student) {
+            const keys = Object.keys(student);
+            
+            document.getElementById('resName').innerText = student[keys[1]] || '-';
+            document.getElementById('resClass').innerText = student[keys[2]] || '-';
+            document.getElementById('resHw').innerText = student[keys[3]] || '-';
+            document.getElementById('resAct').innerText = student[keys[4]] || '-';
+            document.getElementById('resPart').innerText = student[keys[5]] || '-';
+            document.getElementById('resExam').innerText = student[keys[6]] || '-';
+            document.getElementById('resTotal').innerText = student[keys[7]] || '-';
+
+            errorDiv.style.display = 'none';
+            resultTable.style.display = 'table';
+        } else {
+            resultTable.style.display = 'none';
+            errorDiv.style.display = 'block';
+        }
+    }
+</script>
+
+</body>
+</html>
