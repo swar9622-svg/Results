@@ -3,142 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استعلام عن نتائج الطلاب</title>
-    <!-- مكتبة XLSX لقراءة ملفات الأكسل و CSV -->
+    <title>نظام استعلام درجات الطلاب</title>
+    <!-- خط Tajawal الأنيق من جوجل -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- مكتبة XLSX لقراءة ملفات الأكسل -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        * {
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
         }
-        .container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            max-width: 600px;
+        body {
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 20px 15px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .main-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
             width: 100%;
+            max-width: 550px;
+            overflow: hidden;
+            border: 1px solid #e1e8ed;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 25px 20px;
             text-align: center;
         }
-        h2 { color: #2c3e50; margin-bottom: 20px; }
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+        .header h2 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
         }
-        input[type="text"] {
+        .header p {
+            margin: 5px 0 0;
+            font-size: 13px;
+            opacity: 0.85;
+        }
+        .content {
+            padding: 25px 20px;
+        }
+        .search-box {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+        .search-box input {
             flex: 1;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
             font-size: 16px;
             outline: none;
-            transition: border-color 0.3s;
+            transition: all 0.2s ease;
+            text-align: center;
         }
-        input[type="text"]:focus {
-            border-color: #3498db;
+        .search-box input:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.15);
         }
-        button {
-            padding: 12px 25px;
-            background-color: #3498db;
+        .search-box button {
+            padding: 12px 24px;
+            background-color: #2a5298;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 10px;
             font-size: 16px;
+            font-weight: 700;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background 0.2s;
         }
-        button:hover { background-color: #2980b9; }
-        .result-card {
+        .search-box button:hover {
+            background-color: #1e3c72;
+        }
+        .student-info {
+            background-color: #f8fafc;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-right: 4px solid #2a5298;
             display: none;
-            margin-top: 20px;
-            border-collapse: collapse;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        .info-row:last-child { margin-bottom: 0; }
+        .info-label { color: #64748b; font-weight: 500; }
+        .info-value { color: #0f172a; font-weight: 700; }
+
+        .grades-table {
             width: 100%;
-            text-align: right;
+            border-collapse: separate;
+            border-spacing: 0;
+            display: none;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
         }
-        .result-card th, .result-card td {
-            padding: 12px;
-            border: 1px solid #ddd;
+        .grades-table th {
+            background-color: #f1f5f9;
+            color: #475569;
+            padding: 12px 10px;
+            font-size: 14px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
         }
-        .result-card th {
-            background-color: #f8f9fa;
-            color: #333;
+        .grades-table td {
+            padding: 12px 10px;
+            font-size: 15px;
+            text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+        }
+        .grades-table tr:last-child td {
+            border-bottom: none;
+        }
+        .total-row {
+            background-color: #f0fdf4;
+            font-weight: 700;
+        }
+        .total-row td {
+            color: #15803d !important;
+            font-size: 18px !important;
         }
         .error {
-            color: #e74c3c;
-            margin-top: 15px;
+            background-color: #fef2f2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
             display: none;
-            font-weight: bold;
+            border: 1px solid #fecaca;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>استعلام عن درجات الطالب</h2>
-    <div class="input-group">
-        <input type="text" id="idInput" placeholder="أدخل رقم السجل المدني...">
-        <button onclick="searchStudent()">بحث</button>
+<div class="main-card">
+    <div class="header">
+        <h2>إشعار درجات الطالب</h2>
+        <p>قم بطلب الاستعلام بمدخل رقم السجل المدني</p>
     </div>
+    
+    <div class="content">
+        <div class="search-box">
+            <input type="text" id="idInput" placeholder="أدخل رقم السجل المدني...">
+            <button onclick="searchStudent()">بحث</button>
+        </div>
 
-    <div id="errorMsg" class="error">لم يتم العثور على طالب بهذا السجل المدني.</div>
+        <div id="errorMsg" class="error">عفواً، لم يتم العثور على طالب بهذا السجل المدني.</div>
 
-    <table id="resultTable" class="result-card">
-        <tbody>
-            <tr><th>اسم الطالب</th><td id="resName"></td></tr>
-            <tr><th>الفصل</th><td id="resClass"></td></tr>
-            <tr><th>الواجبات</th><td id="resHw"></td></tr>
-            <tr><th>الأنشطة</th><td id="resAct"></td></tr>
-            <tr><th>المشاركة</th><td id="resPart"></td></tr>
-            <tr><th>الاختبار</th><td id="resExam"></td></tr>
-            <tr><th>المجموع</th><td id="resTotal" style="font-weight: bold; color: #27ae60;"></td></tr>
-        </tbody>
-    </table>
+        <!-- معلومات الطالب الرئيسية -->
+        <div id="studentInfo" class="student-info">
+            <div class="info-row">
+                <span class="info-label">اسم الطالب:</span>
+                <span class="info-value" id="resName">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">الفصل:</span>
+                <span class="info-value" id="resClass">-</span>
+            </div>
+        </div>
+
+        <!-- جدول درجات المواد -->
+        <table id="resultTable" class="grades-table">
+            <thead>
+                <tr>
+                    <th>المعيار</th>
+                    <th>الدرجة</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>الواجبات</td><td id="resHw">-</td></tr>
+                <tr><td>الأنشطة</td><td id="resAct">-</td></tr>
+                <tr><td>المشاركة</td><td id="resPart">-</td></tr>
+                <tr><td>الاختبار</td><td id="resExam">-</td></tr>
+                <tr class="total-row">
+                    <td>المجموع النهائي</td>
+                    <td id="resTotal">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
     let studentsData = [];
 
-    // تحميل ملف البيانات تلقائياً عند فتح الصفحة
+    // تحميل ملف الاكسل
     window.onload = function() {
-        // يمكنك تغيير اسم الملف هنا إذا كان xlsx أو csv
         fetch('data.xlsx')
-            .then(res => res.arrayBuffer())
+            .then(res => {
+                if (!res.ok) throw new Error("File not found");
+                return res.arrayBuffer();
+            })
             .then(ab => {
                 const wb = XLSX.read(ab, {type: 'array'});
                 const sheetName = wb.SheetNames[0];
                 const sheet = wb.Sheets[sheetName];
-                // تحويل الشيت إلى JSON
-                studentsData = XLSX.utils.sheet_to_json(sheet, {raw: false});
+                studentsData = XLSX.utils.sheet_to_json(sheet, {raw: false, defval: ""});
             })
-            .catch(err => {
-                console.error("خطأ في تحميل ملف البيانات:", err);
-            });
+            .catch(err => console.error("خطأ في التحميل:", err));
     };
 
     function searchStudent() {
         const inputVal = document.getElementById('idInput').value.trim();
         const errorDiv = document.getElementById('errorMsg');
         const resultTable = document.getElementById('resultTable');
+        const studentInfo = document.getElementById('studentInfo');
 
         if (!inputVal) return;
 
-        // البحث بالاعتماد على أول عمود (السجل المدني)
         const student = studentsData.find(row => {
-            const idKey = Object.keys(row)[0]; // العمود الأول
-            return String(row[idKey]).trim() === inputVal;
+            const firstKey = Object.keys(row)[0];
+            return String(row[firstKey]).trim() === inputVal;
         });
 
         if (student) {
             const keys = Object.keys(student);
             
+            // تعبئة بيانات الطالب
             document.getElementById('resName').innerText = student[keys[1]] || '-';
             document.getElementById('resClass').innerText = student[keys[2]] || '-';
+            
+            // تعبئة الدرجات
             document.getElementById('resHw').innerText = student[keys[3]] || '-';
             document.getElementById('resAct').innerText = student[keys[4]] || '-';
             document.getElementById('resPart').innerText = student[keys[5]] || '-';
@@ -146,8 +245,10 @@
             document.getElementById('resTotal').innerText = student[keys[7]] || '-';
 
             errorDiv.style.display = 'none';
+            studentInfo.style.display = 'block';
             resultTable.style.display = 'table';
         } else {
+            studentInfo.style.display = 'none';
             resultTable.style.display = 'none';
             errorDiv.style.display = 'block';
         }
