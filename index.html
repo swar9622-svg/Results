@@ -107,7 +107,7 @@
     // تحميل ملف البيانات تلقائياً عند فتح الصفحة
     window.onload = function() {
         // يمكنك تغيير اسم الملف هنا إذا كان xlsx أو csv
-        fetch('data.csv')
+        fetch('data.xlsx')
             .then(res => res.arrayBuffer())
             .then(ab => {
                 const wb = XLSX.read(ab, {type: 'array'});
