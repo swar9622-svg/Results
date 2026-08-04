@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام استعلام درجات الطلاب</title>
-    <!-- خط Tajawal الأنيق من جوجل -->
+    <!-- خط Tajawal الأنيق -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- مكتبة XLSX لقراءة ملفات الأكسل -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -39,11 +39,12 @@
         }
         .header h2 {
             margin: 0;
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
+            line-height: 1.5;
         }
         .header p {
-            margin: 5px 0 0;
+            margin: 8px 0 0;
             font-size: 13px;
             opacity: 0.85;
         }
@@ -152,7 +153,7 @@
 
 <div class="main-card">
     <div class="header">
-        <h2>إشعار درجات الطالب</h2>
+        <h2 id="mainTitle">إشعار درجات الطالب</h2>
         <p>قم بطلب الاستعلام بمدخل رقم السجل المدني</p>
     </div>
     
@@ -222,6 +223,7 @@
         const errorDiv = document.getElementById('errorMsg');
         const resultTable = document.getElementById('resultTable');
         const studentInfo = document.getElementById('studentInfo');
+        const mainTitle = document.getElementById('mainTitle');
 
         if (!inputVal) return;
 
@@ -233,16 +235,30 @@
         if (student) {
             const keys = Object.keys(student);
             
+            // قراءة المادة، الصف، والوحدة ديناميكياً من شيت الأكسل
+            const subject = student[keys[3]] || '';
+            const gradeLevel = student[keys[4]] || '';
+            const unit = student[keys[5]] || '';
+
+            // تحديث العنوان الرئيسي
+            mainTitle.innerText = `إشعار درجات الطالب بمادة ${subject} للصف ${gradeLevel} للوحدة ${unit}`;
+
             // تعبئة بيانات الطالب
             document.getElementById('resName').innerText = student[keys[1]] || '-';
             document.getElementById('resClass').innerText = student[keys[2]] || '-';
             
-            // تعبئة الدرجات
-            document.getElementById('resHw').innerText = student[keys[3]] || '-';
-            document.getElementById('resAct').innerText = student[keys[4]] || '-';
-            document.getElementById('resPart').innerText = student[keys[5]] || '-';
-            document.getElementById('resExam').innerText = student[keys[6]] || '-';
-            document.getElementById('resTotal').innerText = student[keys[7]] || '-';
+            // تعبئة الدرجات مع إضافة "من كذا"
+            const hwVal = student[keys[6]] || '0';
+            const actVal = student[keys[7]] || '0';
+            const partVal = student[keys[8]] || '0';
+            const examVal = student[keys[9]] || '0';
+            const totalVal = student[keys[10]] || '0';
+
+            document.getElementById('resHw').innerText = `${hwVal} من 10`;
+            document.getElementById('resAct').innerText = `${actVal} من 20`;
+            document.getElementById('resPart').innerText = `${partVal} من 10`;
+            document.getElementById('resExam').innerText = `${examVal} من 20`;
+            document.getElementById('resTotal').innerText = `${totalVal} من 60`;
 
             errorDiv.style.display = 'none';
             studentInfo.style.display = 'block';
@@ -251,6 +267,7 @@
             studentInfo.style.display = 'none';
             resultTable.style.display = 'none';
             errorDiv.style.display = 'block';
+            mainTitle.innerText = "إشعار درجات الطالب";
         }
     }
 </script>
