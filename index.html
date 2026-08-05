@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام استعلام درجات الطلاب</title>
     <!-- خط Tajawal الأنيق -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <!-- مكتبة XLSX لقراءة ملفات الأكسل -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
@@ -86,11 +86,10 @@
             background-color: #1e3c72;
         }
         
-        /* قائمة التبديل بين الوحدات بعد البحث */
         .unit-select-box {
             margin-bottom: 20px;
             text-align: right;
-            display: none; /* مخفية حتى يتم إدخال السجل المدني */
+            display: none;
             background-color: #f1f5f9;
             padding: 12px;
             border-radius: 10px;
@@ -116,6 +115,7 @@
             cursor: pointer;
         }
 
+        /* تعديل منطقة معلومات الطالب ليكون رقم الفصل بجانب الكلمة على اليمين */
         .student-info {
             background-color: #f8fafc;
             border-radius: 10px;
@@ -126,13 +126,22 @@
         }
         .info-row {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 10px;
             font-size: 15px;
         }
         .info-row:last-child { margin-bottom: 0; }
-        .info-label { color: #64748b; font-weight: 500; }
-        .info-value { color: #0f172a; font-weight: 700; }
+        .info-label { 
+            color: #64748b; 
+            font-weight: 500;
+            white-space: nowrap;
+            min-width: 75px;
+        }
+        .info-value { 
+            color: #0f172a; 
+            font-weight: 700;
+        }
 
         .grades-table {
             width: 100%;
@@ -148,12 +157,14 @@
             color: #475569;
             padding: 12px 10px;
             font-size: 14px;
+            font-weight: 700;
             text-align: center;
             border-bottom: 1px solid #e2e8f0;
         }
         .grades-table td {
-            padding: 10px;
-            font-size: 15px;
+            padding: 12px 10px;
+            font-size: 16px;
+            font-weight: 700; /* خط عريض وواضح لكلمات المعايير */
             text-align: center;
             border-bottom: 1px solid #f1f5f9;
             color: #1e293b;
@@ -163,7 +174,7 @@
             border-bottom: none;
         }
         
-        /* مربعات الدرجات */
+        /* تصميم مربعات الدرجات وحجم الأرقام */
         .score-badge {
             display: inline-flex;
             align-items: center;
@@ -171,9 +182,7 @@
             gap: 4px;
             padding: 6px 14px;
             border-radius: 8px;
-            font-weight: 700;
-            font-size: 15px;
-            min-width: 90px;
+            min-width: 95px;
             box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
         }
         .score-badge.pass {
@@ -186,19 +195,29 @@
             color: #dc2626;
             border: 1px solid #fecaca;
         }
+        /* تكبير رقم الدرجة المستحقة */
+        .score-num {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        /* إبقاء /10 بحجم أصغر ناعم */
         .score-max {
             font-size: 12px;
             opacity: 0.75;
             font-weight: 500;
         }
 
+        /* المجموع النهائي بخط أكبر وأوضح */
         .total-row {
-            background-color: #fafafa;
-            font-weight: 700;
+            background-color: #f8fafc;
         }
-        .total-row .score-badge {
+        .total-row td:first-child {
             font-size: 17px;
-            padding: 8px 16px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .total-row .score-num {
+            font-size: 20px;
         }
 
         .error {
@@ -228,7 +247,7 @@
             <button onclick="searchStudent(true)">بحث</button>
         </div>
 
-        <!-- قائمة اختيار التنقل بين الوحدات (تظهر بعد إدخال السجل المدني) -->
+        <!-- قائمة اختيار التنقل بين الوحدات -->
         <div id="unitSelectContainer" class="unit-select-box">
             <label for="unitSelect">عرض درجات وحدة أخرى:</label>
             <select id="unitSelect" onchange="displaySelectedUnit()"></select>
@@ -274,7 +293,6 @@
     let workbookData = null;
     let currentStudentId = "";
 
-    // تحميل ملف الاكسل
     window.onload = function() {
         fetch('data.xlsx')
             .then(res => {
@@ -293,29 +311,21 @@
         const statusClass = numScore < halfScore ? 'fail' : 'pass';
         
         return `<div class="score-badge ${statusClass}">
-                    <span>${numScore}</span>
+                    <span class="score-num">${numScore}</span>
                     <span class="score-max">/ ${maxScore}</span>
                 </div>`;
     }
 
     function searchStudent(isNewSearch = false) {
         const inputVal = document.getElementById('idInput').value.trim();
-        const errorDiv = document.getElementById('errorMsg');
-        const resultTable = document.getElementById('resultTable');
-        const studentInfo = document.getElementById('studentInfo');
-        const unitContainer = document.getElementById('unitSelectContainer');
         const unitSelect = document.getElementById('unitSelect');
-        const mainTitle = document.getElementById('mainTitle');
 
         if (!inputVal || !workbookData) return;
         
         currentStudentId = inputVal;
-
-        // تجهيز أوراق العمل المتاحة (Sheets)
         const sheetNames = workbookData.SheetNames;
         
         if (isNewSearch) {
-            // تعبئة القائمة بجميع الوحدات المتاحة
             unitSelect.innerHTML = '';
             sheetNames.forEach(name => {
                 const opt = document.createElement('option');
@@ -324,14 +334,12 @@
                 unitSelect.appendChild(opt);
             });
             
-            // اختيار آخر Sheet تلقائياً (آخر وحدة تم إضافتها)
             unitSelect.value = sheetNames[sheetNames.length - 1];
         }
 
         displaySelectedUnit();
     }
 
-    // عرض بيانات الوحدة المختارة حالياً من القائمة المنسدلة
     function displaySelectedUnit() {
         const selectedSheet = document.getElementById('unitSelect').value;
         const errorDiv = document.getElementById('errorMsg');
@@ -357,14 +365,11 @@
             const gradeLevel = student[keys[4]] || '';
             const unit = student[keys[5]] || selectedSheet;
 
-            // تحديث العنوان
             mainTitle.innerText = `إشعار درجات الطالب بمادة ${subject} للصف ${gradeLevel} للوحدة ${unit}`;
 
-            // تعبئة البيانات الشخصية
             document.getElementById('resName').innerText = student[keys[1]] || '-';
             document.getElementById('resClass').innerText = student[keys[2]] || '-';
             
-            // قراءة الدرجات
             const hwVal = student[keys[6]] || 0;
             const actVal = student[keys[7]] || 0;
             const partVal = student[keys[8]] || 0;
@@ -380,7 +385,7 @@
             errorDiv.style.display = 'none';
             studentInfo.style.display = 'block';
             resultTable.style.display = 'table';
-            unitContainer.style.display = 'block'; // إظهار قائمة اختيار الوحدة بعد النجاح
+            unitContainer.style.display = 'block';
         } else {
             studentInfo.style.display = 'none';
             resultTable.style.display = 'none';
