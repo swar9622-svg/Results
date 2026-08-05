@@ -232,12 +232,12 @@
 <div class="main-card">
     <div class="header">
         <h2 id="mainTitle">إشعار درجات الطالب</h2>
-        <p>قم بطلب الاستعلام بمدخل رقم السجل المدني</p>
+        <p>قم بطلب الاستعلام بمدخل رقم الطالب</p>
     </div>
     
     <div class="content">
         <div class="search-box">
-            <input type="text" id="idInput" placeholder="أدخل رقم السجل المدني...">
+            <input type="text" id="stdNoInput" placeholder="أدخل رقم الطالب...">
             <button onclick="searchStudent(true)">بحث</button>
         </div>
 
@@ -246,7 +246,7 @@
             <select id="unitSelect" onchange="displaySelectedUnit()"></select>
         </div>
 
-        <div id="errorMsg" class="error">عفواً، لم يتم العثور على طالب بهذا السجل المدني.</div>
+        <div id="errorMsg" class="error">عفواً، لم يتم العثور على طالب بهذا الرقم.</div>
 
         <div id="studentInfo" class="student-info">
             <div class="info-row">
@@ -282,7 +282,7 @@
 
 <script>
     let workbookData = null;
-    let currentStudentId = "";
+    let currentStudentNumber = "";
 
     window.onload = function() {
         fetch('data.xlsx')
@@ -308,12 +308,12 @@
     }
 
     function searchStudent(isNewSearch = false) {
-        const inputVal = document.getElementById('idInput').value.trim();
+        const inputVal = document.getElementById('stdNoInput').value.trim();
         const unitSelect = document.getElementById('unitSelect');
 
         if (!inputVal || !workbookData) return;
         
-        currentStudentId = inputVal;
+        currentStudentNumber = inputVal;
         const sheetNames = workbookData.SheetNames;
         
         if (isNewSearch) {
@@ -339,14 +339,14 @@
         const unitContainer = document.getElementById('unitSelectContainer');
         const mainTitle = document.getElementById('mainTitle');
 
-        if (!selectedSheet || !currentStudentId) return;
+        if (!selectedSheet || !currentStudentNumber) return;
 
         const sheet = workbookData.Sheets[selectedSheet];
         const studentsData = XLSX.utils.sheet_to_json(sheet, {raw: false, defval: ""});
 
         const student = studentsData.find(row => {
             const firstKey = Object.keys(row)[0];
-            return String(row[firstKey]).trim() === currentStudentId;
+            return String(row[firstKey]).trim() === currentStudentNumber;
         });
 
         if (student) {
