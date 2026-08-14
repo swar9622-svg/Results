@@ -7,32 +7,12 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif; }
+    body { background: #eef2f7; padding: 1.5rem 1rem; direction: rtl; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; }
+    .container { max-width: 800px; width: 100%; margin: 0 auto; }
 
-    body {
-      background: #eef2f7;
-      padding: 1.5rem 1rem;
-      direction: rtl;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-    }
-
-    .container {
-      max-width: 800px;
-      width: 100%;
-      margin: 0 auto;
-    }
-
-    /* Header */
     .header {
-      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+      background: linear-gradient(135deg, #4A90D9, #6CB4EE);
       color: #fff;
       padding: 1.2rem 1.5rem;
       border-radius: 1.5rem;
@@ -40,21 +20,12 @@
       font-size: 1.5rem;
       font-weight: 800;
       margin-bottom: 1.8rem;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
       position: relative;
       overflow: hidden;
     }
-    .header::after {
-      content: "📘";
-      position: absolute;
-      left: 1.2rem;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 2.2rem;
-      opacity: 0.2;
-    }
+    .header::after { content: "📘"; position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); font-size: 2.2rem; opacity: 0.15; }
 
-    /* Search Box */
     .search-box {
       background: #fff;
       border-radius: 1.2rem;
@@ -64,7 +35,7 @@
       gap: 0.6rem;
       align-items: center;
       flex-wrap: wrap;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
       border: 1px solid #e2e8f0;
     }
     .search-box input {
@@ -80,13 +51,9 @@
       transition: 0.2s;
       min-width: 140px;
     }
-    .search-box input:focus {
-      border-color: #1a2a6c;
-      background: #fff;
-      box-shadow: 0 0 0 3px rgba(26, 42, 108, 0.15);
-    }
+    .search-box input:focus { border-color: #4A90D9; background: #fff; box-shadow: 0 0 0 3px rgba(74,144,217,0.15); }
     .search-box button {
-      background: #1a2a6c;
+      background: #4A90D9;
       color: #fff;
       border: none;
       padding: 0.75rem 2rem;
@@ -96,14 +63,10 @@
       cursor: pointer;
       transition: 0.15s;
       white-space: nowrap;
-      box-shadow: 0 4px 12px rgba(26, 42, 108, 0.3);
+      box-shadow: 0 4px 12px rgba(74,144,217,0.3);
     }
-    .search-box button:active {
-      transform: scale(0.96);
-      opacity: 0.8;
-    }
+    .search-box button:active { transform: scale(0.96); opacity: 0.8; }
 
-    /* Unit Selector */
     .unit-selector {
       background: #fff;
       border-radius: 1.2rem;
@@ -113,14 +76,10 @@
       align-items: center;
       gap: 0.7rem;
       flex-wrap: wrap;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
       border: 1px solid #e2e8f0;
     }
-    .unit-selector label {
-      font-weight: 600;
-      color: #1a202c;
-      font-size: 0.95rem;
-    }
+    .unit-selector label { font-weight: 600; color: #1a202c; font-size: 0.95rem; }
     .unit-selector select {
       flex: 1;
       padding: 0.5rem 0.8rem;
@@ -133,61 +92,39 @@
       min-width: 150px;
       transition: 0.2s;
     }
-    .unit-selector select:focus {
-      border-color: #1a2a6c;
-      background: #fff;
-    }
+    .unit-selector select:focus { border-color: #4A90D9; background: #fff; }
 
-    /* Student Card */
     .student-card {
       background: #fff;
       border-radius: 2rem;
       padding: 1.8rem 1.5rem;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.07);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.07);
       margin-bottom: 1.5rem;
       display: none;
       border: 1px solid #edf2f7;
       animation: fadeUp 0.4s ease;
     }
-    .student-card.active {
-      display: block;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .student-card.active { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Header inside card */
     .student-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 3px solid #1a2a6c;
+      border-bottom: 3px solid #4A90D9;
       padding-bottom: 0.7rem;
       margin-bottom: 1.5rem;
       flex-wrap: wrap;
       gap: 0.3rem;
     }
-    .student-name {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: #1a202c;
-    }
-    .student-class {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #4a5568;
-      background: #edf2f7;
-      padding: 0.25rem 1.2rem;
-      border-radius: 2rem;
-    }
+    .student-name { font-size: 1.5rem; font-weight: 800; color: #1a202c; }
+    .student-class { font-size: 1rem; font-weight: 600; color: #4a5568; background: #edf2f7; padding: 0.25rem 1.2rem; border-radius: 2rem; }
 
-    /* ===== جداول جديدة ===== */
     .table-container {
       margin-bottom: 1.8rem;
       border-radius: 1.2rem;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
       border: 2px solid #e2e8f0;
     }
     .table-container .table-title {
@@ -199,107 +136,33 @@
       letter-spacing: 0.5px;
       text-align: center;
     }
-    .table-container table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-    }
-    .table-container table th,
-    .table-container table td {
+    .table-container table { width: 100%; border-collapse: collapse; background: #fff; }
+    .table-container table th, .table-container table td {
       padding: 0.5rem 0.3rem;
       text-align: center;
       border: 1px solid #e2e8f0;
       font-size: 0.95rem;
     }
-    .table-container table th {
-      background: #f7fafc;
-      font-weight: 700;
-      color: #2d3748;
-    }
-    .table-container table td {
-      font-weight: 600;
-      color: #1a202c;
-    }
-    .table-container table .grade-value {
-      background: #f7fafc;
-      border-radius: 0.5rem;
-      padding: 0.1rem 0.6rem;
-      display: inline-block;
-      min-width: 32px;
-    }
+    .table-container table td { font-weight: 600; color: #1a202c; }
+    .table-container table .grade-value { background: #f7fafc; border-radius: 0.5rem; padding: 0.1rem 0.6rem; display: inline-block; min-width: 32px; }
+    .table-container tfoot td { font-size: 1.3rem !important; font-weight: 800 !important; padding: 0.6rem 0.3rem; border-top: 2px solid #cbd5e0; }
 
-    /* تذييل الجداول (الدرجات الموزونة) */
-    .table-container tfoot td {
-      font-size: 1.3rem !important;
-      font-weight: 800 !important;
-      padding: 0.6rem 0.3rem;
-      border-top: 2px solid #cbd5e0;
-    }
+    .hw-table { border-color: #48bb78; }
+    .hw-table .table-title { background: #276749; }
+    .act-table { border-color: #ed8936; }
+    .act-table .table-title { background: #c05621; }
+    .part-table { border-color: #9f7aea; }
+    .part-table .table-title { background: #6b46c1; }
+    .test-table { border-color: #fc8181; }
+    .test-table .table-title { background: #c53030; }
 
-    /* ألوان خاصة للجداول */
-    .hw-table {
-      border-color: #48bb78;
-    }
-    .hw-table .table-title {
-      background: #276749;
-    }
-    .act-table {
-      border-color: #ed8936;
-    }
-    .act-table .table-title {
-      background: #c05621;
-    }
-    .part-table {
-      border-color: #9f7aea;
-    }
-    .part-table .table-title {
-      background: #6b46c1;
-    }
-    .test-table {
-      border-color: #fc8181;
-    }
-    .test-table .table-title {
-      background: #c53030;
-    }
+    .part-table td { padding: 0.4rem 0.2rem; }
+    .part-table .main-value { font-weight: 800; font-size: 1.4rem; color: #1a202c; }
+    .test-table td { padding: 0.4rem 0.2rem; }
+    .test-table .main-value { font-weight: 800; font-size: 1.4rem; color: #1a202c; }
 
-    /* تنسيق صفوف المشاركة */
-    .part-table td {
-      padding: 0.4rem 0.2rem;
-    }
-    .part-table .sub-label {
-      font-size: 0.8rem;
-      color: #718096;
-      font-weight: 500;
-    }
-    .part-table .main-value {
-      font-weight: 800;
-      font-size: 1.4rem;
-      color: #1a202c;
-    }
-    .part-table .part-result {
-      font-size: 1.4rem !important;
-      font-weight: 800 !important;
-      color: #6b46c1;
-    }
-
-    /* تنسيق الاختبار والمشروع */
-    .test-table td {
-      padding: 0.4rem 0.2rem;
-    }
-    .test-table .main-value {
-      font-weight: 800;
-      font-size: 1.4rem;
-      color: #1a202c;
-    }
-    .test-table .test-result {
-      font-size: 1.3rem !important;
-      font-weight: 800 !important;
-      color: #c53030;
-    }
-
-    /* ===== صندوق المجموع الكلي الجديد (منفصل) ===== */
     .total-score-box {
-      background: linear-gradient(135deg, #1a2a6c, #2d3748);
+      background: linear-gradient(135deg, #4A90D9, #2d3748);
       color: #fff;
       border-radius: 1.2rem;
       padding: 0.8rem 1.5rem;
@@ -308,20 +171,14 @@
       align-items: center;
       font-weight: 800;
       font-size: 1.5rem;
-      border: 3px solid #fdbb2d;
+      border: 3px solid #6CB4EE;
       margin-top: 0.5rem;
       margin-bottom: 0.5rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-    .total-score-box .label {
-      color: #e2e8f0;
-    }
-    .total-score-box .value {
-      color: #fdbb2d;
-      font-size: 1.7rem;
-    }
+    .total-score-box .label { color: #e2e8f0; }
+    .total-score-box .value { color: #6CB4EE; font-size: 1.7rem; }
 
-    /* ===== الخلاصة (الدرجات الموزونة) ===== */
     .summary-section {
       background: #f7fafc;
       border-radius: 1.2rem;
@@ -338,20 +195,10 @@
       font-size: 1rem;
       font-weight: 600;
     }
-    .summary-row:last-child {
-      border-bottom: none;
-    }
-    .summary-row .label {
-      color: #4a5568;
-    }
-    .summary-row .value {
-      font-weight: 800;
-      color: #1a202c;
-    }
-    .summary-row .value.highlight {
-      color: #1a2a6c;
-      font-size: 1.1rem;
-    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-row .label { color: #4a5568; }
+    .summary-row .value { font-weight: 800; color: #1a202c; }
+    .summary-row .value.highlight { color: #4A90D9; font-size: 1.1rem; }
     .summary-total {
       background: #e2e8f0;
       border-radius: 0.8rem;
@@ -363,15 +210,33 @@
       font-size: 1.1rem;
       border: 2px solid #a0aec0;
     }
-    .summary-total .label {
-      color: #2d3748;
-    }
-    .summary-total .value {
-      color: #1a2a6c;
-      font-size: 1.2rem;
-    }
+    .summary-total .label { color: #2d3748; }
+    .summary-total .value { color: #4A90D9; font-size: 1.2rem; }
 
-    /* No data */
+    .weighted-simple-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #1a202c;
+      padding: 0.2rem 0;
+      text-align: center;
+      background: #f7fafc;
+      border-radius: 0.8rem;
+      margin: 0.2rem 0;
+    }
+    .weighted-label {
+      font-weight: 700;
+      color: #4a5568;
+      font-size: 1rem;
+    }
+    .weighted-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.3rem 1rem;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .weighted-row:last-child { border-bottom: none; }
+
     .no-data {
       text-align: center;
       padding: 3rem 1.5rem;
@@ -379,13 +244,11 @@
       font-weight: 600;
       background: #fff;
       border-radius: 2rem;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
       border: 1px solid #e2e8f0;
       display: none;
       font-size: 1.1rem;
     }
-
-    /* Footer */
     .footer {
       text-align: center;
       font-size: 0.75rem;
@@ -395,15 +258,12 @@
       padding-top: 1rem;
       font-weight: 500;
     }
-
-    /* استجابة */
     @media (max-width: 550px) {
       .search-box { flex-direction: column; }
       .search-box button { width: 100%; justify-content: center; }
       .unit-selector { flex-direction: column; align-items: stretch; }
       .student-header { flex-direction: column; align-items: flex-start; }
-      .table-container table th,
-      .table-container table td { font-size: 0.8rem; padding: 0.3rem 0.1rem; }
+      .table-container table th, .table-container table td { font-size: 0.8rem; padding: 0.3rem 0.1rem; }
       .table-container tfoot td { font-size: 1rem !important; }
       .part-table .main-value { font-size: 1.1rem; }
       .test-table .main-value { font-size: 1.1rem; }
@@ -413,378 +273,374 @@
   </style>
 </head>
 <body>
-  <div class="container">
+<div class="container">
 
-    <div class="header">📘 استعلام درجات الطالب</div>
+  <div class="header">📘 استعلام درجات الطالب</div>
 
-    <div class="search-box">
-      <input type="text" id="studentIdInput" placeholder="أدخل رقم الطالب (5 أرقام)" maxlength="5" inputmode="numeric" />
-      <button onclick="searchStudent()">🔍 بحث</button>
+  <div class="search-box">
+    <input type="text" id="studentIdInput" placeholder="أدخل رقم الطالب (5 أرقام)" maxlength="5" inputmode="numeric" />
+    <button onclick="searchStudent()">🔍 بحث</button>
+  </div>
+
+  <div class="unit-selector" id="unitSelector" style="display:none;">
+    <label for="unitSelect">📂 الوحدة:</label>
+    <select id="unitSelect" onchange="onUnitChange()"></select>
+  </div>
+
+  <div id="studentCard" class="student-card">
+    <div class="student-header">
+      <span class="student-name" id="studentName">-</span>
+      <span class="student-class" id="studentClass">-</span>
     </div>
 
-    <div class="unit-selector" id="unitSelector" style="display:none;">
-      <label for="unitSelect">📂 الوحدة:</label>
-      <select id="unitSelect" onchange="onUnitChange()"></select>
+    <div id="hwActContainer"></div>
+
+    <div class="table-container part-table">
+      <div class="table-title">📊 المشاركة</div>
+      <table>
+        <thead><tr><th>الغياب</th><th>التأخر</th><th>المخالفات</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="main-value" id="absentCount">-</span></td>
+            <td><span class="main-value" id="lateCount">-</span></td>
+            <td><span class="main-value" id="violationCount">-</span></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="background:#f4ecf7; font-weight:700; color:#6b46c1; font-size:1.4rem;">
+              درجة المشاركة: <span id="participationScore" style="font-weight:800;">-</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <div id="studentCard" class="student-card">
-      <div class="student-header">
-        <span class="student-name" id="studentName">-</span>
-        <span class="student-class" id="studentClass">-</span>
+    <div class="table-container test-table">
+      <div class="table-title">📋 الاختبار والمشروع</div>
+      <table>
+        <thead><tr><th>الاختبار</th><th>المشروع</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="main-value" id="test1Val">-</span></td>
+            <td><span class="main-value" id="test2Val">-</span></td>
+          </tr>
+          <tr>
+            <td colspan="2" style="background:#fff5f5; font-weight:700; color:#c53030; font-size:1.3rem;">
+              درجة الاختبار: <span id="testTotalSum" style="font-weight:800;">-</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="total-score-box">
+      <span class="label">المجموع الكلي</span>
+      <span class="value" id="totalSum">-</span>
+    </div>
+
+    <div class="section-title" style="color:#4A90D9; margin-top:1.8rem; font-weight:700; font-size:1.1rem;">📊 الخلاصة (الدرجات الموزونة)</div>
+    <div class="summary-section" id="summarySection">
+      <div class="summary-row"><span class="label">الواجبات</span><span class="value highlight" id="sumHw">-</span></div>
+      <div class="summary-row"><span class="label">الأنشطة</span><span class="value highlight" id="sumAct">-</span></div>
+      <div class="summary-row"><span class="label">المشاركة</span><span class="value highlight" id="sumPart">-</span></div>
+      <div class="summary-row"><span class="label">مجموع الاختبارات</span><span class="value highlight" id="sumTest">-</span></div>
+      <div class="summary-total"><span class="label">المجموع الكلي</span><span class="value" id="sumTotal">-</span></div>
+    </div>
+  </div>
+
+  <div id="noData" class="no-data">❌ لا توجد بيانات لهذا الرقم</div>
+  <div class="footer">نظام الاستعلام - يعمل مع ملف data.xlsx</div>
+</div>
+
+<script>
+let workbookData = null;
+let sheetNames = [];
+let currentStudentId = '';
+let currentSheetName = '';
+
+function loadExcelFile() {
+  fetch('data.xlsx')
+    .then(response => {
+      if (!response.ok) throw new Error('ملف data.xlsx غير موجود');
+      return response.arrayBuffer();
+    })
+    .then(arrayBuffer => {
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      sheetNames = workbook.SheetNames;
+      workbookData = {};
+      sheetNames.forEach(name => {
+        const sheet = workbook.Sheets[name];
+        workbookData[name] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      });
+      populateUnitSelect();
+      document.getElementById('unitSelector').style.display = 'flex';
+      const weighted = sheetNames.find(n => n.includes('موزونة'));
+      currentSheetName = weighted || sheetNames[0];
+      document.getElementById('unitSelect').value = currentSheetName;
+    })
+    .catch(err => {
+      console.error(err);
+      alert('❌ لم يتم العثور على ملف data.xlsx.\nتأكد من وجوده في نفس المجلد.');
+    });
+}
+
+function populateUnitSelect() {
+  const select = document.getElementById('unitSelect');
+  select.innerHTML = '';
+  sheetNames.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+}
+
+function searchStudent() {
+  const input = document.getElementById('studentIdInput');
+  const id = input.value.trim();
+  if (!id) { alert('يرجى إدخال رقم الطالب'); return; }
+  if (!/^\d{5}$/.test(id)) { alert('رقم الطالب يجب أن يكون 5 أرقام'); return; }
+  currentStudentId = id;
+  displayStudentData(id, currentSheetName);
+}
+
+function onUnitChange() {
+  const select = document.getElementById('unitSelect');
+  currentSheetName = select.value;
+  if (currentStudentId) displayStudentData(currentStudentId, currentSheetName);
+}
+
+function findColumn(keys, patterns) {
+  for (let p of patterns) {
+    const found = keys.find(k => k.includes(p));
+    if (found) return found;
+  }
+  return null;
+}
+
+function displayStudentData(studentId, sheetName) {
+  const card = document.getElementById('studentCard');
+  const noData = document.getElementById('noData');
+  card.classList.remove('active');
+  noData.style.display = 'none';
+
+  if (!workbookData || !workbookData[sheetName]) {
+    noData.style.display = 'block';
+    noData.textContent = '❌ لا توجد بيانات للصفحة المحددة';
+    return;
+  }
+
+  const rows = workbookData[sheetName];
+  if (rows.length === 0) {
+    noData.style.display = 'block';
+    noData.textContent = '❌ الصفحة الحالية فارغة';
+    return;
+  }
+
+  const firstKey = Object.keys(rows[0])[0] || '';
+  const studentRow = rows.find(row => {
+    const val = row[firstKey];
+    return val && val.toString().trim() === studentId;
+  });
+
+  if (!studentRow) {
+    card.classList.remove('active');
+    noData.style.display = 'block';
+    noData.textContent = '❌ لم يتم العثور على طالب برقم ' + studentId + ' في صفحة "' + sheetName + '"';
+    return;
+  }
+
+  const keys = Object.keys(studentRow);
+  const studentName = studentRow[keys[1]] || '-';
+  const studentClass = studentRow[keys[2]] || '-';
+  document.getElementById('studentName').textContent = studentName;
+  document.getElementById('studentClass').textContent = studentClass;
+
+  const isWeighted = sheetName.includes('موزونة');
+
+  let hwAvg = 0, actAvg = 0;
+
+  if (isWeighted) {
+    const hwCol = findColumn(keys, ['معدل الواجب', 'معدل الواجبات']);
+    const actCol = findColumn(keys, ['معدل النشاط', 'معدل الأنشطة', 'معدل الانشطه']);
+    if (hwCol) { const v = parseFloat(studentRow[hwCol]); if (!isNaN(v)) hwAvg = v; }
+    if (actCol) { const v = parseFloat(studentRow[actCol]); if (!isNaN(v)) actAvg = v; }
+    
+    if (hwAvg === 0) {
+      const fallback = keys.find(k => k.includes('واجب') && !k.includes('معدل'));
+      if (fallback) { const v = parseFloat(studentRow[fallback]); if (!isNaN(v)) hwAvg = v; }
+    }
+    if (actAvg === 0) {
+      const fallback = keys.find(k => k.includes('نشاط') && !k.includes('معدل'));
+      if (fallback) { const v = parseFloat(studentRow[fallback]); if (!isNaN(v)) actAvg = v; }
+    }
+  } else {
+    const hwKeys = keys.filter(k => k.includes('واجب'));
+    let hwSum = 0, hwCount = 0;
+    hwKeys.forEach(k => { const v = parseFloat(studentRow[k]); if (!isNaN(v)) { hwSum += v; hwCount++; } });
+    hwAvg = hwCount > 0 ? hwSum / hwCount : 0;
+
+    const actKeys = keys.filter(k => k.includes('نشاط'));
+    let actSum = 0, actCount = 0;
+    actKeys.forEach(k => { const v = parseFloat(studentRow[k]); if (!isNaN(v)) { actSum += v; actCount++; } });
+    actAvg = actCount > 0 ? actSum / actCount : 0;
+  }
+
+  const absentKey = findColumn(keys, ['غياب']);
+  const lateKey = findColumn(keys, ['تأخر']);
+  const violationKey = findColumn(keys, ['مخالفات']);
+  document.getElementById('absentCount').textContent = absentKey ? studentRow[absentKey] : '-';
+  document.getElementById('lateCount').textContent = lateKey ? studentRow[lateKey] : '-';
+  document.getElementById('violationCount').textContent = violationKey ? studentRow[violationKey] : '-';
+
+  let partScore = 0;
+  const partKey = findColumn(keys, ['المشاركة']);
+  if (partKey) { const v = parseFloat(studentRow[partKey]); if (!isNaN(v)) partScore = v; }
+  document.getElementById('participationScore').textContent = partScore.toFixed(2);
+
+  const test1Key = findColumn(keys, ['اختبار']);
+  const test2Key = findColumn(keys, ['مشروع']);
+  const test1Val = test1Key ? studentRow[test1Key] : '-';
+  const test2Val = test2Key ? studentRow[test2Key] : '-';
+  const t1 = parseFloat(test1Val) || 0;
+  const t2 = parseFloat(test2Val) || 0;
+  const testSum = t1 + t2;
+  document.getElementById('test1Val').textContent = test1Val;
+  document.getElementById('test2Val').textContent = test2Val;
+  document.getElementById('testTotalSum').textContent = testSum.toFixed(2);
+
+  const container = document.getElementById('hwActContainer');
+  container.innerHTML = '';
+
+  if (isWeighted) {
+    container.innerHTML = `
+      <div style="margin-bottom:1.8rem; border:2px solid #48bb78; border-radius:1.2rem; overflow:hidden;">
+        <div style="background:#276749; color:#fff; padding:0.4rem 1.2rem; font-weight:700; text-align:center;">📝 الواجبات</div>
+        <div style="padding:0.8rem 1.2rem; background:#f0fff4;">
+          <div class="weighted-row">
+            <span class="weighted-label">الدرجة الموزونة</span>
+            <span class="weighted-simple-value" style="color:#276749;">${hwAvg.toFixed(2)}</span>
+          </div>
+        </div>
       </div>
-
-      <!-- ===== جدول الواجبات ===== -->
+      <div style="margin-bottom:1.8rem; border:2px solid #ed8936; border-radius:1.2rem; overflow:hidden;">
+        <div style="background:#c05621; color:#fff; padding:0.4rem 1.2rem; font-weight:700; text-align:center;">🎯 الأنشطة</div>
+        <div style="padding:0.8rem 1.2rem; background:#fffbeb;">
+          <div class="weighted-row">
+            <span class="weighted-label">الدرجة الموزونة</span>
+            <span class="weighted-simple-value" style="color:#c05621;">${actAvg.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    const hwKeys = keys.filter(k => k.includes('واجب'));
+    let hwHtml = '';
+    for (let i = 0; i < hwKeys.length; i += 2) {
+      const k1 = hwKeys[i];
+      const k2 = hwKeys[i+1];
+      const val1 = studentRow[k1] || '-';
+      let val2 = '';
+      let label2 = '';
+      if (k2) {
+        val2 = studentRow[k2] || '-';
+        label2 = k2.replace(/واجب\s*/g, '').trim() || k2;
+      }
+      const label1 = k1.replace(/واجب\s*/g, '').trim() || k1;
+      
+      hwHtml += '<tr>';
+      hwHtml += '<td style="background-color: #eaf6ef; font-weight: 600;">' + label1 + '</td>';
+      hwHtml += '<td><span class="grade-value">' + val1 + '</span></td>';
+      if (k2) {
+        hwHtml += '<td style="background-color: #eaf6ef; font-weight: 600;">' + label2 + '</td>';
+        hwHtml += '<td><span class="grade-value">' + val2 + '</span></td>';
+      } else {
+        hwHtml += '<td style="background-color: #eaf6ef; color: #a0aec0; font-weight: 400;">---</td>';
+        hwHtml += '<td style="color: #a0aec0; font-weight: 400;">---</td>';
+      }
+      hwHtml += '</tr>';
+    }
+    container.innerHTML += `
       <div class="table-container hw-table">
         <div class="table-title">📝 الواجبات</div>
         <table>
           <thead>
             <tr>
-              <th>الدرس</th>
-              <th>الدرجة</th>
-              <th>الدرس</th>
-              <th>الدرجة</th>
+              <th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th>
+              <th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th>
+              <th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th>
+              <th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th>
             </tr>
           </thead>
-          <tbody id="hwTableBody">
-            <!-- يتم تعبئتها بواسطة JavaScript -->
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="4" style="background:#f0fff4; color:#276749;">
-                الدرجة الموزونة للواجبات: <span id="hwWeighted">-</span>
-              </td>
-            </tr>
-          </tfoot>
+          <tbody>${hwHtml}</tbody>
+          <tfoot><tr><td colspan="4" style="background:#f0fff4; color:#276749;">الدرجة الموزونة للواجبات: <span id="hwWeighted">${hwAvg.toFixed(2)}</span></td></tr></tfoot>
         </table>
       </div>
+    `;
 
-      <!-- ===== جدول الأنشطة ===== -->
+    const actKeys = keys.filter(k => k.includes('نشاط'));
+    let actHtml = '';
+    for (let i = 0; i < actKeys.length; i += 2) {
+      const k1 = actKeys[i];
+      const k2 = actKeys[i+1];
+      const val1 = studentRow[k1] || '-';
+      let val2 = '';
+      let label2 = '';
+      if (k2) {
+        val2 = studentRow[k2] || '-';
+        label2 = k2.replace(/نشاط\s*/g, '').trim() || k2;
+      }
+      const label1 = k1.replace(/نشاط\s*/g, '').trim() || k1;
+      
+      actHtml += '<tr>';
+      actHtml += '<td style="background-color: #fef3e8; font-weight: 600;">' + label1 + '</td>';
+      actHtml += '<td><span class="grade-value">' + val1 + '</span></td>';
+      if (k2) {
+        actHtml += '<td style="background-color: #fef3e8; font-weight: 600;">' + label2 + '</td>';
+        actHtml += '<td><span class="grade-value">' + val2 + '</span></td>';
+      } else {
+        actHtml += '<td style="background-color: #fef3e8; color: #a0aec0; font-weight: 400;">---</td>';
+        actHtml += '<td style="color: #a0aec0; font-weight: 400;">---</td>';
+      }
+      actHtml += '</tr>';
+    }
+    container.innerHTML += `
       <div class="table-container act-table">
         <div class="table-title">🎯 الأنشطة</div>
         <table>
           <thead>
             <tr>
-              <th>الدرس</th>
-              <th>الدرجة</th>
-              <th>الدرس</th>
-              <th>الدرجة</th>
+              <th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th>
+              <th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th>
+              <th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th>
+              <th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th>
             </tr>
           </thead>
-          <tbody id="actTableBody">
-            <!-- يتم تعبئتها بواسطة JavaScript -->
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="4" style="background:#fffbeb; color:#c05621;">
-                الدرجة الموزونة للأنشطة: <span id="actWeighted">-</span>
-              </td>
-            </tr>
-          </tfoot>
+          <tbody>${actHtml}</tbody>
+          <tfoot><tr><td colspan="4" style="background:#fffbeb; color:#c05621;">الدرجة الموزونة للأنشطة: <span id="actWeighted">${actAvg.toFixed(2)}</span></td></tr></tfoot>
         </table>
       </div>
+    `;
+  }
 
-      <!-- ===== جدول المشاركة ===== -->
-      <div class="table-container part-table">
-        <div class="table-title">📊 المشاركة</div>
-        <table>
-          <thead>
-            <tr>
-              <th>الغياب</th>
-              <th>التأخر</th>
-              <th>المخالفات</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><span class="main-value" id="absentCount">-</span></td>
-              <td><span class="main-value" id="lateCount">-</span></td>
-              <td><span class="main-value" id="violationCount">-</span></td>
-            </tr>
-            <tr>
-              <td colspan="3" style="background:#f4ecf7; font-weight:700; color:#6b46c1; font-size:1.4rem;">
-                درجة المشاركة: <span id="participationScore" style="font-weight:800;">-</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+  const totalSum = (hwAvg + actAvg + partScore + t1 + t2).toFixed(2);
+  document.getElementById('totalSum').textContent = totalSum;
 
-      <!-- ===== جدول الاختبار والمشروع ===== -->
-      <div class="table-container test-table">
-        <div class="table-title">📋 الاختبار والمشروع</div>
-        <table>
-          <thead>
-            <tr>
-              <th>الاختبار</th>
-              <th>المشروع</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><span class="main-value" id="test1Val">-</span></td>
-              <td><span class="main-value" id="test2Val">-</span></td>
-            </tr>
-            <tr>
-              <td colspan="2" style="background:#fff5f5; font-weight:700; color:#c53030; font-size:1.3rem;">
-                درجة الاختبار: <span id="testTotalSum" style="font-weight:800;">-</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+  document.getElementById('sumHw').textContent = hwAvg.toFixed(2);
+  document.getElementById('sumAct').textContent = actAvg.toFixed(2);
+  document.getElementById('sumPart').textContent = partScore.toFixed(2);
+  document.getElementById('sumTest').textContent = testSum.toFixed(2);
+  document.getElementById('sumTotal').textContent = totalSum;
 
-      <!-- ===== صندوق المجموع الكلي المنفصل ===== -->
-      <div class="total-score-box">
-        <span class="label">المجموع الكلي</span>
-        <span class="value" id="totalSum">-</span>
-      </div>
+  card.classList.add('active');
+  noData.style.display = 'none';
+}
 
-      <!-- ===== الخلاصة (الدرجات الموزونة) ===== -->
-      <div class="section-title" style="color:#1a2a6c; margin-top:1.8rem; font-weight:700; font-size:1.1rem;">📊 الخلاصة (الدرجات الموزونة)</div>
-      <div class="summary-section" id="summarySection">
-        <div class="summary-row">
-          <span class="label">الواجبات</span>
-          <span class="value highlight" id="sumHw">-</span>
-        </div>
-        <div class="summary-row">
-          <span class="label">الأنشطة</span>
-          <span class="value highlight" id="sumAct">-</span>
-        </div>
-        <div class="summary-row">
-          <span class="label">المشاركة</span>
-          <span class="value highlight" id="sumPart">-</span>
-        </div>
-        <div class="summary-row">
-          <span class="label">مجموع الاختبارات</span>
-          <span class="value highlight" id="sumTest">-</span>
-        </div>
-        <div class="summary-total">
-          <span class="label">المجموع الكلي</span>
-          <span class="value" id="sumTotal">-</span>
-        </div>
-      </div>
-    </div>
-
-    <div id="noData" class="no-data">❌ لا توجد بيانات لهذا الرقم</div>
-
-    <div class="footer">نظام الاستعلام - يعمل مع ملف data.xlsx</div>
-  </div>
-
-  <script>
-    // ========== المتغيرات العامة ==========
-    let workbookData = null;
-    let sheetNames = [];
-    let currentStudentId = '';
-    let currentSheetName = '';
-
-    // ========== تحميل ملف الإكسل ==========
-    function loadExcelFile() {
-      fetch('data.xlsx')
-        .then(response => {
-          if (!response.ok) throw new Error('ملف data.xlsx غير موجود');
-          return response.arrayBuffer();
-        })
-        .then(arrayBuffer => {
-          const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-          sheetNames = workbook.SheetNames;
-          workbookData = {};
-          sheetNames.forEach(name => {
-            const sheet = workbook.Sheets[name];
-            workbookData[name] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-          });
-          populateUnitSelect();
-          document.getElementById('unitSelector').style.display = 'flex';
-          if (sheetNames.length > 0) {
-            const weighted = sheetNames.find(n => n.includes('موزونة'));
-            currentSheetName = weighted || sheetNames[0];
-            document.getElementById('unitSelect').value = currentSheetName;
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          alert('❌ لم يتم العثور على ملف data.xlsx.\nتأكد من وجوده في نفس المجلد.');
-        });
-    }
-
-    function populateUnitSelect() {
-      const select = document.getElementById('unitSelect');
-      select.innerHTML = '';
-      sheetNames.forEach(name => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        select.appendChild(opt);
-      });
-    }
-
-    // ========== البحث ==========
-    function searchStudent() {
-      const input = document.getElementById('studentIdInput');
-      const id = input.value.trim();
-      if (!id) { alert('يرجى إدخال رقم الطالب'); return; }
-      if (!/^\d{5}$/.test(id)) { alert('رقم الطالب يجب أن يكون 5 أرقام'); return; }
-      currentStudentId = id;
-      displayStudentData(id, currentSheetName);
-    }
-
-    // ========== تغيير الوحدة ==========
-    function onUnitChange() {
-      const select = document.getElementById('unitSelect');
-      currentSheetName = select.value;
-      if (currentStudentId) displayStudentData(currentStudentId, currentSheetName);
-    }
-
-    // ========== عرض البيانات ==========
-    function displayStudentData(studentId, sheetName) {
-      const card = document.getElementById('studentCard');
-      const noData = document.getElementById('noData');
-      card.classList.remove('active');
-      noData.style.display = 'none';
-
-      if (!workbookData || !workbookData[sheetName]) {
-        noData.style.display = 'block';
-        noData.textContent = '❌ لا توجد بيانات للصفحة المحددة';
-        return;
-      }
-
-      const rows = workbookData[sheetName];
-      if (rows.length === 0) {
-        noData.style.display = 'block';
-        noData.textContent = '❌ الصفحة الحالية فارغة';
-        return;
-      }
-
-      const firstKey = Object.keys(rows[0])[0] || '';
-      const studentRow = rows.find(row => {
-        const val = row[firstKey];
-        return val && val.toString().trim() === studentId;
-      });
-
-      if (!studentRow) {
-        card.classList.remove('active');
-        noData.style.display = 'block';
-        noData.textContent = `❌ لم يتم العثور على طالب برقم ${studentId} في صفحة "${sheetName}"`;
-        return;
-      }
-
-      const keys = Object.keys(studentRow);
-      const studentName = studentRow[keys[1]] || '-';
-      const studentClass = studentRow[keys[2]] || '-';
-      document.getElementById('studentName').textContent = studentName;
-      document.getElementById('studentClass').textContent = studentClass;
-
-      // --- تعبئة جدول الواجبات ---
-      const hwKeys = keys.filter(k => k.includes('واجب'));
-      const hwBody = document.getElementById('hwTableBody');
-      hwBody.innerHTML = '';
-      let hwSum = 0, hwCount = 0;
-      for (let i = 0; i < hwKeys.length; i += 2) {
-        const k1 = hwKeys[i];
-        const k2 = hwKeys[i + 1];
-        const val1 = studentRow[k1] || '-';
-        const val2 = k2 ? (studentRow[k2] || '-') : '';
-        const num1 = parseFloat(val1);
-        if (!isNaN(num1)) { hwSum += num1; hwCount++; }
-        const num2 = parseFloat(val2);
-        if (!isNaN(num2)) { hwSum += num2; hwCount++; }
-        const label1 = k1.replace(/واجب\s*/g, '').trim() || k1;
-        const label2 = k2 ? (k2.replace(/واجب\s*/g, '').trim() || k2) : '';
-        const row = document.createElement('tr');
-        let html = `<td>${label1}</td><td><span class="grade-value">${val1}</span></td>`;
-        if (k2) {
-          html += `<td>${label2}</td><td><span class="grade-value">${val2}</span></td>`;
-        } else {
-          html += `<td></td><td></td>`;
-        }
-        row.innerHTML = html;
-        hwBody.appendChild(row);
-      }
-      const hwAvg = hwCount > 0 ? (hwSum / hwCount) : 0;
-      document.getElementById('hwWeighted').textContent = hwAvg.toFixed(2);
-
-      // --- تعبئة جدول الأنشطة ---
-      const actKeys = keys.filter(k => k.includes('نشاط'));
-      const actBody = document.getElementById('actTableBody');
-      actBody.innerHTML = '';
-      let actSum = 0, actCount = 0;
-      for (let i = 0; i < actKeys.length; i += 2) {
-        const k1 = actKeys[i];
-        const k2 = actKeys[i + 1];
-        const val1 = studentRow[k1] || '-';
-        const val2 = k2 ? (studentRow[k2] || '-') : '';
-        const num1 = parseFloat(val1);
-        if (!isNaN(num1)) { actSum += num1; actCount++; }
-        const num2 = parseFloat(val2);
-        if (!isNaN(num2)) { actSum += num2; actCount++; }
-        const label1 = k1.replace(/نشاط\s*/g, '').trim() || k1;
-        const label2 = k2 ? (k2.replace(/نشاط\s*/g, '').trim() || k2) : '';
-        const row = document.createElement('tr');
-        let html = `<td>${label1}</td><td><span class="grade-value">${val1}</span></td>`;
-        if (k2) {
-          html += `<td>${label2}</td><td><span class="grade-value">${val2}</span></td>`;
-        } else {
-          html += `<td></td><td></td>`;
-        }
-        row.innerHTML = html;
-        actBody.appendChild(row);
-      }
-      const actAvg = actCount > 0 ? (actSum / actCount) : 0;
-      document.getElementById('actWeighted').textContent = actAvg.toFixed(2);
-
-      // --- المشاركة ---
-      const absentKey = keys.find(k => k.includes('غياب'));
-      const lateKey = keys.find(k => k.includes('تأخر'));
-      const violationKey = keys.find(k => k.includes('مخالفات'));
-      document.getElementById('absentCount').textContent = absentKey ? studentRow[absentKey] : '-';
-      document.getElementById('lateCount').textContent = lateKey ? studentRow[lateKey] : '-';
-      document.getElementById('violationCount').textContent = violationKey ? studentRow[violationKey] : '-';
-
-      const partKey = keys.find(k => k.includes('المشاركة') && !k.includes('موزونة'));
-      let partScore = 0;
-      if (partKey) {
-        const val = studentRow[partKey];
-        const num = parseFloat(val);
-        if (!isNaN(num)) partScore = num;
-      }
-      document.getElementById('participationScore').textContent = partScore.toFixed(2);
-
-      // --- الاختبار والمشروع ---
-      const test1Key = keys.find(k => k.includes('اختبار') && !k.includes('موزونة'));
-      const test2Key = keys.find(k => k.includes('مشروع'));
-      const test1Val = test1Key ? studentRow[test1Key] : '-';
-      const test2Val = test2Key ? studentRow[test2Key] : '-';
-      const t1 = parseFloat(test1Val) || 0;
-      const t2 = parseFloat(test2Val) || 0;
-      const testSum = t1 + t2;
-      document.getElementById('test1Val').textContent = test1Val;
-      document.getElementById('test2Val').textContent = test2Val;
-      document.getElementById('testTotalSum').textContent = testSum.toFixed(2);
-
-      // --- المجموع الكلي (الصندوق المنفصل) ---
-      const hw = parseFloat(document.getElementById('hwWeighted').textContent) || 0;
-      const act = parseFloat(document.getElementById('actWeighted').textContent) || 0;
-      const part = partScore;
-      const totalSum = (hw + act + part + t1 + t2).toFixed(2);
-      document.getElementById('totalSum').textContent = totalSum;
-
-      // --- تحديث الخلاصة ---
-      document.getElementById('sumHw').textContent = hw.toFixed(2);
-      document.getElementById('sumAct').textContent = act.toFixed(2);
-      document.getElementById('sumPart').textContent = part.toFixed(2);
-      document.getElementById('sumTest').textContent = testSum.toFixed(2);
-      document.getElementById('sumTotal').textContent = totalSum;
-
-      card.classList.add('active');
-      noData.style.display = 'none';
-    }
-
-    // ========== التهيئة ==========
-    window.onload = function() {
-      loadExcelFile();
-      document.getElementById('studentIdInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') searchStudent();
-      });
-    };
-  </script>
+window.onload = function() {
+  loadExcelFile();
+  document.getElementById('studentIdInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') searchStudent();
+  });
+};
+</script>
 </body>
 </html>
