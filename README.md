@@ -20,7 +20,8 @@ All data is read directly from an Excel file (`.xlsx`) without any server or int
 ## 🔒 Privacy & Data
 
 - **No data is sent anywhere** – all processing is done on your device.
-- Student IDs are **randomly generated** and assigned to students.
+- This is a **demonstration project**.
+- All student data, including IDs, names, and grades, are **fictional and used for testing purposes only**.
 - You can replace the sample file with your own data while keeping the same column structure.
 
 ---
