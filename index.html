@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>استعلام درجات الطالب</title>
+  <title>استعلام درجات الطالب 1.1</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
@@ -317,38 +317,34 @@
     <div class="table-container test-table">
       <div class="table-title">📋 الاختبار والمشروع</div>
       <table>
-        <thead><tr><th>الاختبار</th><th>المشروع</th></tr></thead>
+        <thead><tr><th>الاختبار</th><th>المشروع</th><th>خ اختبار</th></tr></thead>
         <tbody>
           <tr>
             <td><span class="main-value" id="test1Val">-</span></td>
             <td><span class="main-value" id="test2Val">-</span></td>
-          </tr>
-          <tr>
-            <td colspan="2" style="background:#fff5f5; font-weight:700; color:#c53030; font-size:1.3rem;">
-              درجة الاختبار: <span id="testTotalSum" style="font-weight:800;">-</span>
-            </td>
+            <td><span class="main-value" id="testWeightedVal">-</span></td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div class="total-score-box">
-      <span class="label">المجموع الكلي</span>
+      <span class="label">المجموع الكلي للوحدة</span>
       <span class="value" id="totalSum">-</span>
     </div>
 
-    <div class="section-title" style="color:#4A90D9; margin-top:1.8rem; font-weight:700; font-size:1.1rem;">📊 الخلاصة (الدرجات الموزونة)</div>
+    <div class="section-title" style="color:#4A90D9; margin-top:1.8rem; font-weight:700; font-size:1.1rem;">📊 الخلاصة (الدرجات النهائية)</div>
     <div class="summary-section" id="summarySection">
       <div class="summary-row"><span class="label">الواجبات</span><span class="value highlight" id="sumHw">-</span></div>
       <div class="summary-row"><span class="label">الأنشطة</span><span class="value highlight" id="sumAct">-</span></div>
       <div class="summary-row"><span class="label">المشاركة</span><span class="value highlight" id="sumPart">-</span></div>
-      <div class="summary-row"><span class="label">مجموع الاختبارات</span><span class="value highlight" id="sumTest">-</span></div>
-      <div class="summary-total"><span class="label">المجموع الكلي</span><span class="value" id="sumTotal">-</span></div>
+      <div class="summary-row"><span class="label">الاختبار</span><span class="value highlight" id="sumTest">-</span></div>
+      <div class="summary-total"><span class="label">المجموع الكلي النهائي</span><span class="value" id="sumTotal">-</span></div>
     </div>
   </div>
 
   <div id="noData" class="no-data">❌ لا توجد بيانات لهذا الرقم</div>
-  <div class="footer">نظام الاستعلام - يعمل مع ملف data.xlsx</div>
+  <div class="footer">نظام الاستعلام - يعمل مع ملف data.xlsx (النسخة الجديدة)</div>
 </div>
 
 <script>
@@ -373,7 +369,8 @@ function loadExcelFile() {
       });
       populateUnitSelect();
       document.getElementById('unitSelector').style.display = 'flex';
-      const weighted = sheetNames.find(n => n.includes('موزونة'));
+      // حدد صفحة الخلاصة إذا وجدت، وإلا أول صفحة
+      const weighted = sheetNames.find(n => n.includes('خلاصة'));
       currentSheetName = weighted || sheetNames[0];
       document.getElementById('unitSelect').value = currentSheetName;
     })
@@ -417,6 +414,20 @@ function findColumn(keys, patterns) {
   return null;
 }
 
+function getValue(row, key, defaultValue = '-') {
+  if (!key) return defaultValue;
+  const val = row[key];
+  if (val === undefined || val === null || val === '') return defaultValue;
+  return val;
+}
+
+function getNumericValue(row, key, fallback = 0) {
+  const val = row[key];
+  if (val === undefined || val === null || val === '') return fallback;
+  const num = parseFloat(val);
+  return isNaN(num) ? fallback : num;
+}
+
 function displayStudentData(studentId, sheetName) {
   const card = document.getElementById('studentCard');
   const noData = document.getElementById('noData');
@@ -436,6 +447,7 @@ function displayStudentData(studentId, sheetName) {
     return;
   }
 
+  // العمود الأول عادة هو رقم الطالب
   const firstKey = Object.keys(rows[0])[0] || '';
   const studentRow = rows.find(row => {
     const val = row[firstKey];
@@ -450,186 +462,153 @@ function displayStudentData(studentId, sheetName) {
   }
 
   const keys = Object.keys(studentRow);
-  const studentName = studentRow[keys[1]] || '-';
-  const studentClass = studentRow[keys[2]] || '-';
-  document.getElementById('studentName').textContent = studentName;
-  document.getElementById('studentClass').textContent = studentClass;
+  // اسم الطالب (عادة العمود الثاني)
+  const nameKey = keys[1] || '';
+  const classKey = keys[2] || '';
+  document.getElementById('studentName').textContent = getValue(studentRow, nameKey);
+  document.getElementById('studentClass').textContent = getValue(studentRow, classKey);
 
-  const isWeighted = sheetName.includes('موزونة');
+  // --- استخراج القيم المحسوبة من الأعمدة الجديدة ---
+  // خ واجب, خ نشاط, خ مشاركه, خ اختبار, المجموع
+  const hwWeightedKey = findColumn(keys, ['خ واجب']);
+  const actWeightedKey = findColumn(keys, ['خ نشاط']);
+  const partWeightedKey = findColumn(keys, ['خ مشاركه']);
+  const testWeightedKey = findColumn(keys, ['خ اختبار']);
+  const totalKey = findColumn(keys, ['المجموع']);
 
-  let hwAvg = 0, actAvg = 0;
+  const hwWeighted = getNumericValue(studentRow, hwWeightedKey);
+  const actWeighted = getNumericValue(studentRow, actWeightedKey);
+  const partWeighted = getNumericValue(studentRow, partWeightedKey);
+  const testWeighted = getNumericValue(studentRow, testWeightedKey);
+  const total = getNumericValue(studentRow, totalKey);
 
-  if (isWeighted) {
-    const hwCol = findColumn(keys, ['معدل الواجب', 'معدل الواجبات']);
-    const actCol = findColumn(keys, ['معدل النشاط', 'معدل الأنشطة', 'معدل الانشطه']);
-    if (hwCol) { const v = parseFloat(studentRow[hwCol]); if (!isNaN(v)) hwAvg = v; }
-    if (actCol) { const v = parseFloat(studentRow[actCol]); if (!isNaN(v)) actAvg = v; }
-    
-    if (hwAvg === 0) {
-      const fallback = keys.find(k => k.includes('واجب') && !k.includes('معدل'));
-      if (fallback) { const v = parseFloat(studentRow[fallback]); if (!isNaN(v)) hwAvg = v; }
-    }
-    if (actAvg === 0) {
-      const fallback = keys.find(k => k.includes('نشاط') && !k.includes('معدل'));
-      if (fallback) { const v = parseFloat(studentRow[fallback]); if (!isNaN(v)) actAvg = v; }
-    }
-  } else {
-    const hwKeys = keys.filter(k => k.includes('واجب'));
-    let hwSum = 0, hwCount = 0;
-    hwKeys.forEach(k => { const v = parseFloat(studentRow[k]); if (!isNaN(v)) { hwSum += v; hwCount++; } });
-    hwAvg = hwCount > 0 ? hwSum / hwCount : 0;
-
-    const actKeys = keys.filter(k => k.includes('نشاط'));
-    let actSum = 0, actCount = 0;
-    actKeys.forEach(k => { const v = parseFloat(studentRow[k]); if (!isNaN(v)) { actSum += v; actCount++; } });
-    actAvg = actCount > 0 ? actSum / actCount : 0;
-  }
-
-  const absentKey = findColumn(keys, ['غياب']);
-  const lateKey = findColumn(keys, ['تأخر']);
-  const violationKey = findColumn(keys, ['مخالفات']);
-  document.getElementById('absentCount').textContent = absentKey ? studentRow[absentKey] : '-';
-  document.getElementById('lateCount').textContent = lateKey ? studentRow[lateKey] : '-';
-  document.getElementById('violationCount').textContent = violationKey ? studentRow[violationKey] : '-';
-
-  let partScore = 0;
-  const partKey = findColumn(keys, ['المشاركة']);
-  if (partKey) { const v = parseFloat(studentRow[partKey]); if (!isNaN(v)) partScore = v; }
-  document.getElementById('participationScore').textContent = partScore.toFixed(2);
-
-  const test1Key = findColumn(keys, ['اختبار']);
-  const test2Key = findColumn(keys, ['مشروع']);
-  const test1Val = test1Key ? studentRow[test1Key] : '-';
-  const test2Val = test2Key ? studentRow[test2Key] : '-';
-  const t1 = parseFloat(test1Val) || 0;
-  const t2 = parseFloat(test2Val) || 0;
-  const testSum = t1 + t2;
-  document.getElementById('test1Val').textContent = test1Val;
-  document.getElementById('test2Val').textContent = test2Val;
-  document.getElementById('testTotalSum').textContent = testSum.toFixed(2);
-
+  // --- عرض الواجبات والأنشطة الفردية مع الدرجات الموزونة ---
   const container = document.getElementById('hwActContainer');
   container.innerHTML = '';
 
-  if (isWeighted) {
-    container.innerHTML = `
-      <div style="margin-bottom:1.8rem; border:2px solid #48bb78; border-radius:1.2rem; overflow:hidden;">
-        <div style="background:#276749; color:#fff; padding:0.4rem 1.2rem; font-weight:700; text-align:center;">📝 الواجبات</div>
-        <div style="padding:0.8rem 1.2rem; background:#f0fff4;">
-          <div class="weighted-row">
-            <span class="weighted-label">الدرجة الموزونة</span>
-            <span class="weighted-simple-value" style="color:#276749;">${hwAvg.toFixed(2)}</span>
-          </div>
-        </div>
-      </div>
-      <div style="margin-bottom:1.8rem; border:2px solid #ed8936; border-radius:1.2rem; overflow:hidden;">
-        <div style="background:#c05621; color:#fff; padding:0.4rem 1.2rem; font-weight:700; text-align:center;">🎯 الأنشطة</div>
-        <div style="padding:0.8rem 1.2rem; background:#fffbeb;">
-          <div class="weighted-row">
-            <span class="weighted-label">الدرجة الموزونة</span>
-            <span class="weighted-simple-value" style="color:#c05621;">${actAvg.toFixed(2)}</span>
-          </div>
-        </div>
-      </div>
-    `;
-  } else {
-    const hwKeys = keys.filter(k => k.includes('واجب'));
-    let hwHtml = '';
-    for (let i = 0; i < hwKeys.length; i += 2) {
-      const k1 = hwKeys[i];
-      const k2 = hwKeys[i+1];
-      const val1 = studentRow[k1] || '-';
-      let val2 = '';
-      let label2 = '';
-      if (k2) {
-        val2 = studentRow[k2] || '-';
-        label2 = k2.replace(/واجب\s*/g, '').trim() || k2;
-      }
-      const label1 = k1.replace(/واجب\s*/g, '').trim() || k1;
-      
-      hwHtml += '<tr>';
-      hwHtml += '<td style="background-color: #eaf6ef; font-weight: 600;">' + label1 + '</td>';
-      hwHtml += '<td><span class="grade-value">' + val1 + '</span></td>';
-      if (k2) {
-        hwHtml += '<td style="background-color: #eaf6ef; font-weight: 600;">' + label2 + '</td>';
-        hwHtml += '<td><span class="grade-value">' + val2 + '</span></td>';
-      } else {
-        hwHtml += '<td style="background-color: #eaf6ef; color: #a0aec0; font-weight: 400;">---</td>';
-        hwHtml += '<td style="color: #a0aec0; font-weight: 400;">---</td>';
-      }
-      hwHtml += '</tr>';
+  // الواجبات
+  const hwKeys = keys.filter(k => k.includes('واجب') && !k.includes('خ') && !k.includes('موزونه'));
+  let hwHtml = '';
+  for (let i = 0; i < hwKeys.length; i += 2) {
+    const k1 = hwKeys[i];
+    const k2 = hwKeys[i+1];
+    const val1 = getValue(studentRow, k1);
+    let val2 = '-', label2 = '';
+    if (k2) {
+      val2 = getValue(studentRow, k2);
+      label2 = k2.replace(/واجب\s*/g, '').trim() || k2;
     }
-    container.innerHTML += `
-      <div class="table-container hw-table">
-        <div class="table-title">📝 الواجبات</div>
-        <table>
-          <thead>
-            <tr>
-              <th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th>
-              <th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th>
-              <th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th>
-              <th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th>
-            </tr>
-          </thead>
-          <tbody>${hwHtml}</tbody>
-          <tfoot><tr><td colspan="4" style="background:#f0fff4; color:#276749;">الدرجة الموزونة للواجبات: <span id="hwWeighted">${hwAvg.toFixed(2)}</span></td></tr></tfoot>
-        </table>
-      </div>
-    `;
-
-    const actKeys = keys.filter(k => k.includes('نشاط'));
-    let actHtml = '';
-    for (let i = 0; i < actKeys.length; i += 2) {
-      const k1 = actKeys[i];
-      const k2 = actKeys[i+1];
-      const val1 = studentRow[k1] || '-';
-      let val2 = '';
-      let label2 = '';
-      if (k2) {
-        val2 = studentRow[k2] || '-';
-        label2 = k2.replace(/نشاط\s*/g, '').trim() || k2;
-      }
-      const label1 = k1.replace(/نشاط\s*/g, '').trim() || k1;
-      
-      actHtml += '<tr>';
-      actHtml += '<td style="background-color: #fef3e8; font-weight: 600;">' + label1 + '</td>';
-      actHtml += '<td><span class="grade-value">' + val1 + '</span></td>';
-      if (k2) {
-        actHtml += '<td style="background-color: #fef3e8; font-weight: 600;">' + label2 + '</td>';
-        actHtml += '<td><span class="grade-value">' + val2 + '</span></td>';
-      } else {
-        actHtml += '<td style="background-color: #fef3e8; color: #a0aec0; font-weight: 400;">---</td>';
-        actHtml += '<td style="color: #a0aec0; font-weight: 400;">---</td>';
-      }
-      actHtml += '</tr>';
-    }
-    container.innerHTML += `
-      <div class="table-container act-table">
-        <div class="table-title">🎯 الأنشطة</div>
-        <table>
-          <thead>
-            <tr>
-              <th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th>
-              <th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th>
-              <th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th>
-              <th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th>
-            </tr>
-          </thead>
-          <tbody>${actHtml}</tbody>
-          <tfoot><tr><td colspan="4" style="background:#fffbeb; color:#c05621;">الدرجة الموزونة للأنشطة: <span id="actWeighted">${actAvg.toFixed(2)}</span></td></tr></tfoot>
-        </table>
-      </div>
-    `;
+    const label1 = k1.replace(/واجب\s*/g, '').trim() || k1;
+    hwHtml += `<tr>
+      <td style="background-color: #eaf6ef; font-weight: 600;">${label1}</td>
+      <td><span class="grade-value">${val1}</span></td>
+      ${k2 ? `<td style="background-color: #eaf6ef; font-weight: 600;">${label2}</td><td><span class="grade-value">${val2}</span></td>` : `<td style="background-color: #eaf6ef; color: #a0aec0; font-weight: 400;">---</td><td style="color: #a0aec0; font-weight: 400;">---</td>`}
+    </tr>`;
   }
+  container.innerHTML += `
+    <div class="table-container hw-table">
+      <div class="table-title">📝 الواجبات</div>
+      <table>
+        <thead><tr><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th></tr></thead>
+        <tbody>${hwHtml || '<tr><td colspan="4" style="color:#a0aec0;">لا توجد واجبات</td></tr>'}</tbody>
+        ${hwWeightedKey ? `<tfoot><tr><td colspan="4" style="background:#f0fff4; color:#276749;">الدرجة الموزونة للواجبات: <span>${hwWeighted.toFixed(2)}</span></td></tr></tfoot>` : ''}
+      </table>
+    </div>
+  `;
 
-  const totalSum = (hwAvg + actAvg + partScore + t1 + t2).toFixed(2);
-  document.getElementById('totalSum').textContent = totalSum;
+  // الأنشطة
+  const actKeys = keys.filter(k => k.includes('نشاط') && !k.includes('خ') && !k.includes('موزونه'));
+  let actHtml = '';
+  for (let i = 0; i < actKeys.length; i += 2) {
+    const k1 = actKeys[i];
+    const k2 = actKeys[i+1];
+    const val1 = getValue(studentRow, k1);
+    let val2 = '-', label2 = '';
+    if (k2) {
+      val2 = getValue(studentRow, k2);
+      label2 = k2.replace(/نشاط\s*/g, '').trim() || k2;
+    }
+    const label1 = k1.replace(/نشاط\s*/g, '').trim() || k1;
+    actHtml += `<tr>
+      <td style="background-color: #fef3e8; font-weight: 600;">${label1}</td>
+      <td><span class="grade-value">${val1}</span></td>
+      ${k2 ? `<td style="background-color: #fef3e8; font-weight: 600;">${label2}</td><td><span class="grade-value">${val2}</span></td>` : `<td style="background-color: #fef3e8; color: #a0aec0; font-weight: 400;">---</td><td style="color: #a0aec0; font-weight: 400;">---</td>`}
+    </tr>`;
+  }
+  container.innerHTML += `
+    <div class="table-container act-table">
+      <div class="table-title">🎯 الأنشطة</div>
+      <table>
+        <thead><tr><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th></tr></thead>
+        <tbody>${actHtml || '<tr><td colspan="4" style="color:#a0aec0;">لا توجد أنشطة</td></tr>'}</tbody>
+        ${actWeightedKey ? `<tfoot><tr><td colspan="4" style="background:#fffbeb; color:#c05621;">الدرجة الموزونة للأنشطة: <span>${actWeighted.toFixed(2)}</span></td></tr></tfoot>` : ''}
+      </table>
+    </div>
+  `;
 
-  document.getElementById('sumHw').textContent = hwAvg.toFixed(2);
-  document.getElementById('sumAct').textContent = actAvg.toFixed(2);
-  document.getElementById('sumPart').textContent = partScore.toFixed(2);
-  document.getElementById('sumTest').textContent = testSum.toFixed(2);
-  document.getElementById('sumTotal').textContent = totalSum;
+  // --- المشاركة ---
+  const absentKey = findColumn(keys, ['غياب']);
+  const lateKey = findColumn(keys, ['تأخر']);
+  const violationKey = findColumn(keys, ['مخالفات']);
+  const partKey = findColumn(keys, ['المشاركه']); // العمود الأصلي
+
+  document.getElementById('absentCount').textContent = getValue(studentRow, absentKey);
+  document.getElementById('lateCount').textContent = getValue(studentRow, lateKey);
+  document.getElementById('violationCount').textContent = getValue(studentRow, violationKey);
+
+  // درجة المشاركة: نعرض إما قيمة "المشاركه" أو "خ مشاركه" حسب المتاح
+  let partDisplay = partWeighted;
+  if (partKey && getNumericValue(studentRow, partKey) !== 0) {
+    partDisplay = getNumericValue(studentRow, partKey);
+  }
+  document.getElementById('participationScore').textContent = partDisplay.toFixed(2);
+
+  // --- الاختبار والمشروع ---
+  const testKey = findColumn(keys, ['اختبار']);
+  const projectKey = findColumn(keys, ['مشروع']);
+  document.getElementById('test1Val').textContent = getValue(studentRow, testKey);
+  document.getElementById('test2Val').textContent = getValue(studentRow, projectKey);
+  document.getElementById('testWeightedVal').textContent = testWeightedKey ? testWeighted.toFixed(2) : '-';
+
+  // --- المجموع الكلي للوحدة ---
+  document.getElementById('totalSum').textContent = totalKey ? total.toFixed(2) : '-';
+
+  // --- الخلاصة (من ورقة الخلاصة) ---
+  const summarySheetName = sheetNames.find(n => n.includes('خلاصة'));
+  if (summarySheetName && workbookData[summarySheetName]) {
+    const summaryRows = workbookData[summarySheetName];
+    const summaryRow = summaryRows.find(row => {
+      const name = row['اسم الطالب'] || row['الاسم'] || '';
+      return name.trim() === studentRow[nameKey]?.trim();
+    });
+    if (summaryRow) {
+      const sKeys = Object.keys(summaryRow);
+      const hwSum = getNumericValue(summaryRow, findColumn(sKeys, ['واجب']));
+      const actSum = getNumericValue(summaryRow, findColumn(sKeys, ['نشاط']));
+      const partSum = getNumericValue(summaryRow, findColumn(sKeys, ['مشاركه']));
+      const testSum = getNumericValue(summaryRow, findColumn(sKeys, ['اختبار']));
+      const totalSum = getNumericValue(summaryRow, findColumn(sKeys, ['المجموع']));
+      document.getElementById('sumHw').textContent = hwSum.toFixed(2);
+      document.getElementById('sumAct').textContent = actSum.toFixed(2);
+      document.getElementById('sumPart').textContent = partSum.toFixed(2);
+      document.getElementById('sumTest').textContent = testSum.toFixed(2);
+      document.getElementById('sumTotal').textContent = totalSum.toFixed(2);
+    } else {
+      // إذا لم يوجد الطالب في الخلاصة، نعرض القيم المحسوبة من الصفحة الحالية
+      document.getElementById('sumHw').textContent = hwWeighted.toFixed(2);
+      document.getElementById('sumAct').textContent = actWeighted.toFixed(2);
+      document.getElementById('sumPart').textContent = partDisplay.toFixed(2);
+      document.getElementById('sumTest').textContent = testWeighted.toFixed(2);
+      document.getElementById('sumTotal').textContent = total.toFixed(2);
+    }
+  } else {
+    // إذا لم توجد صفحة خلاصة، نعرض من الصفحة الحالية
+    document.getElementById('sumHw').textContent = hwWeighted.toFixed(2);
+    document.getElementById('sumAct').textContent = actWeighted.toFixed(2);
+    document.getElementById('sumPart').textContent = partDisplay.toFixed(2);
+    document.getElementById('sumTest').textContent = testWeighted.toFixed(2);
+    document.getElementById('sumTotal').textContent = total.toFixed(2);
+  }
 
   card.classList.add('active');
   noData.style.display = 'none';
