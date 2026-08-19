@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -30,7 +31,6 @@
 
     .container { max-width: 800px; width: 100%; margin: 0 auto; animation: fadeSlideUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
 
-    /* ===== الهيدر (المسؤول عن اللون) ===== */
     .header {
       background: linear-gradient(135deg, #4A90D9, #6CB4EE);
       color: #fff;
@@ -91,7 +91,6 @@
     }
     .search-box button:active { transform: scale(0.96); opacity: 0.8; }
 
-    /* ===== أزرار اختيار الوحدة ===== */
     .unit-selector {
       background: #fff;
       border-radius: 1.2rem;
@@ -100,7 +99,7 @@
       box-shadow: 0 4px 16px rgba(0,0,0,0.06);
       border: 1px solid #e2e8f0;
       animation: softAppear 1s ease 0.4s both;
-      display: none; /* مخفي افتراضياً حتى يظهر الطالب */
+      display: none;
     }
     .unit-selector .unit-label {
       text-align: center;
@@ -245,14 +244,12 @@
     .test-table td { padding: 0.4rem 0.2rem; }
     .test-table .main-value { font-weight: 800; font-size: 1.4rem; color: #1a202c; }
 
-    /* ===== تكبير وتغليظ خط جداول الواجبات والأنشطة ===== */
     .hw-table td, .hw-table .grade-value,
     .act-table td, .act-table .grade-value {
       font-size: 1.4rem !important;
       font-weight: 900 !important;
     }
 
-    /* ===== خلاصة الوحدة (صفحات الوحدات) ===== */
     .summary-section {
       background: #f7fafc;
       border-radius: 1.2rem;
@@ -331,7 +328,6 @@
     .summary-section .summary-total .label { color: #2d3748; font-size: 1.3rem; }
     .summary-section .summary-total .value { color: #4A90D9; font-size: 1.5rem; }
 
-    /* ===== صفحة الخلاصة النهائية ===== */
     .summary-special {
       background: linear-gradient(145deg, #f0f9ff, #e0f2fe) !important;
       border: 2px solid #bae6fd !important;
@@ -388,7 +384,6 @@
     .summary-special .row-part .value { color: #9333ea; background: #faf5ff; border: 1px solid #e9d5ff; }
     .summary-special .row-test .value { color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; }
 
-    /* ===== المجموع الكلي في الخلاصة (مستطيل من صفين: أحمر + أبيض) ===== */
     .summary-special .summary-total {
       background: #ffffff !important;
       border: 2px solid #c53030 !important;
@@ -473,21 +468,17 @@
 
   <div class="header">📘 استعلام درجات الطالب</div>
 
-  <!-- مربع البحث -->
   <div class="search-box" id="searchBox">
     <input type="text" id="studentIdInput" placeholder="أدخل رقم الطالب (5 أرقام)" maxlength="5" inputmode="numeric" />
     <button onclick="searchStudent()">🔍 بحث</button>
   </div>
 
-  <!-- أزرار الوحدات (مخفية افتراضياً) -->
   <div class="unit-selector" id="unitSelector">
     <div class="unit-label">📌 لمشاهدة تفاصيل الدرجات اختر الوحدة</div>
     <div class="unit-btn-group" id="unitBtnGroup">
-      <!-- يتم إنشاء الأزرار بواسطة جافا سكريبت -->
     </div>
   </div>
 
-  <!-- بطاقة الطالب -->
   <div id="studentCard" class="student-card">
     <div class="student-header">
       <span class="student-name" id="studentName">-</span>
@@ -535,7 +526,6 @@
           <span class="sub-title">بعد إضافة درجات المشروع</span>
         </div>
         <div id="summaryRowsContainer">
-          <!-- يتم تعبئتها بواسطة جافا سكريبت -->
         </div>
       </div>
     </div>
@@ -566,9 +556,11 @@ function loadExcelFile() {
         workbookData[name] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
       });
       populateUnitButtons();
-      // ===== إخفاء الإطار حتى يتم البحث =====
       document.getElementById('unitSelector').style.display = 'none';
-      const defaultSheet = sheetNames.find(n => n.includes('خلاصة')) || sheetNames[0];
+      // ===== الصفحة الافتراضية: أول صفحة غير الخلاصة، أو الخلاصة إذا كانت الوحيدة =====
+      const unitSheets = sheetNames.filter(name => !name.includes('خلاصة'));
+      const summarySheets = sheetNames.filter(name => name.includes('خلاصة'));
+      const defaultSheet = unitSheets.length > 0 ? unitSheets[0] : (summarySheets.length > 0 ? summarySheets[0] : sheetNames[0]);
       currentSheetName = defaultSheet;
       highlightActiveButton(defaultSheet);
     })
@@ -581,8 +573,13 @@ function loadExcelFile() {
 function populateUnitButtons() {
   const group = document.getElementById('unitBtnGroup');
   group.innerHTML = '';
-  const unitSheets = sheetNames.filter(n => n.includes('الوحده'));
-  const summarySheets = sheetNames.filter(n => n.includes('خلاصة'));
+  
+  // ===== الطريقة الجديدة: كل الصفحات وحدات، ما عدا "خلاصة" =====
+  const summarySheets = sheetNames.filter(name => name.includes('خلاصة'));
+  const unitSheets = sheetNames.filter(name => !name.includes('خلاصة'));
+
+  // نرتب الوحدات حسب ظهورها في الملف (أو أبجدياً)
+  unitSheets.sort();
 
   unitSheets.forEach((name) => {
     const btn = document.createElement('button');
@@ -858,8 +855,6 @@ function displayStudentData(studentId, sheetName) {
 
   card.classList.add('active');
   noData.style.display = 'none';
-
-  // ===== إظهار أزرار الوحدات بعد العثور على الطالب =====
   document.getElementById('unitSelector').style.display = 'block';
 }
 
