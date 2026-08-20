@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -576,7 +575,9 @@ function populateUnitButtons() {
   const summarySheets = sheetNames.filter(name => name.includes('خلاصة'));
   const unitSheets = sheetNames.filter(name => !name.includes('خلاصة'));
 
-  unitSheets.sort();
+  // ===== تم إلغاء الترتيب الأبجدي =====
+  // unitSheets.sort(); 
+  // الآن تظهر الأوراق بنفس ترتيبها في ملف Excel
 
   unitSheets.forEach((name) => {
     const btn = document.createElement('button');
@@ -740,127 +741,4 @@ function displayStudentData(studentId, sheetName) {
     summarySection.classList.remove('summary-special');
     summaryTitle.innerHTML = `
       <span class="main-title">📊 خلاصة الوحدة</span>
-      <span class="sub-title">بعد إضافة درجات المشروع</span>
-    `;
-
-    const weightedKeys = keys.filter(k => k.includes('موزونه'));
-    const hwWeightedKey = weightedKeys.length > 0 ? weightedKeys[0] : null;
-    const actWeightedKey = weightedKeys.length > 1 ? weightedKeys[1] : null;
-    const hwWeighted = getNumericValue(studentRow, hwWeightedKey);
-    const actWeighted = getNumericValue(studentRow, actWeightedKey);
-
-    const hwKeys = keys.filter(k => k.includes('واجب') && !k.includes('موزونه') && !k.includes('خ'));
-    const actKeys = keys.filter(k => k.includes('نشاط') && !k.includes('موزونه') && !k.includes('خ'));
-
-    let html = '';
-
-    // ===== جدول الواجبات (الترتيب: الدرجة | الدرس) =====
-    let hwHtml = '';
-    for (let i = 0; i < hwKeys.length; i += 2) {
-      const k1 = hwKeys[i];
-      const k2 = hwKeys[i+1];
-      const val1 = getValue(studentRow, k1);
-      let val2 = '-', label2 = '';
-      if (k2) {
-        val2 = getValue(studentRow, k2);
-        label2 = k2.replace(/واجب\s*/g, '').trim() || k2;
-      }
-      const label1 = k1.replace(/واجب\s*/g, '').trim() || k1;
-      hwHtml += `<tr>
-        <td><span class="grade-value">${val1}</span></td>
-        <td style="background-color: #eaf6ef; font-weight: 600;">${label1}</td>
-        ${k2 ? `<td><span class="grade-value">${val2}</span></td><td style="background-color: #eaf6ef; font-weight: 600;">${label2}</td>` : `<td style="color: #a0aec0; font-weight: 400;">---</td><td style="background-color: #eaf6ef; color: #a0aec0; font-weight: 400;">---</td>`}
-      </tr>`;
-    }
-    html += `
-      <div class="table-container hw-table">
-        <div class="table-title">📝 الواجبات</div>
-        <table>
-          <thead><tr><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th></tr></thead>
-          <tbody>${hwHtml || '<tr><td colspan="4" style="color:#a0aec0;">لا توجد واجبات</td></tr>'}</tbody>
-          ${hwWeightedKey ? `<tfoot><tr><td colspan="4" style="background:#f0fff4; color:#276749;">الدرجة الموزونة: <span>${hwWeighted.toFixed(2)}</span></td></tr></tfoot>` : ''}
-        </table>
-      </div>`;
-
-    // ===== جدول الأنشطة (الترتيب: الدرجة | الدرس) =====
-    let actHtml = '';
-    for (let i = 0; i < actKeys.length; i += 2) {
-      const k1 = actKeys[i];
-      const k2 = actKeys[i+1];
-      const val1 = getValue(studentRow, k1);
-      let val2 = '-', label2 = '';
-      if (k2) {
-        val2 = getValue(studentRow, k2);
-        label2 = k2.replace(/نشاط\s*/g, '').trim() || k2;
-      }
-      const label1 = k1.replace(/نشاط\s*/g, '').trim() || k1;
-      actHtml += `<tr>
-        <td><span class="grade-value">${val1}</span></td>
-        <td style="background-color: #fef3e8; font-weight: 600;">${label1}</td>
-        ${k2 ? `<td><span class="grade-value">${val2}</span></td><td style="background-color: #fef3e8; font-weight: 600;">${label2}</td>` : `<td style="color: #a0aec0; font-weight: 400;">---</td><td style="background-color: #fef3e8; color: #a0aec0; font-weight: 400;">---</td>`}
-      </tr>`;
-    }
-    html += `
-      <div class="table-container act-table">
-        <div class="table-title">🎯 الأنشطة</div>
-        <table>
-          <thead><tr><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th></tr></thead>
-          <tbody>${actHtml || '<tr><td colspan="4" style="color:#a0aec0;">لا توجد أنشطة</td></tr>'}</tbody>
-          ${actWeightedKey ? `<tfoot><tr><td colspan="4" style="background:#fffbeb; color:#c05621;">الدرجة الموزونة: <span>${actWeighted.toFixed(2)}</span></td></tr></tfoot>` : ''}
-        </table>
-      </div>`;
-
-    hwActContainer.innerHTML = html;
-
-    const absentKey = findColumn(keys, ['غياب']);
-    const lateKey = findColumn(keys, ['تأخر']);
-    const violationKey = findColumn(keys, ['مخالفات']);
-    const partKey = findColumn(keys, ['المشاركه', 'المشاركة']);
-
-    document.getElementById('absentCount').textContent = getValue(studentRow, absentKey);
-    document.getElementById('lateCount').textContent = getValue(studentRow, lateKey);
-    document.getElementById('violationCount').textContent = getValue(studentRow, violationKey);
-    const partScore = getNumericValue(studentRow, partKey);
-    document.getElementById('participationScore').textContent = partScore.toFixed(2);
-
-    const testKey = findColumn(keys, ['اختبار']);
-    const projectKey = findColumn(keys, ['مشروع']);
-    document.getElementById('test1Val').textContent = getValue(studentRow, testKey);
-    document.getElementById('test2Val').textContent = getValue(studentRow, projectKey);
-
-    // ===== خلاصة الوحدة (بدون المشروع) =====
-    const khwKey = findColumn(keys, ['خ واجب']);
-    const kactKey = findColumn(keys, ['خ نشاط']);
-    const kpartKey = findColumn(keys, ['خ مشاركه']);
-    const ktestKey = findColumn(keys, ['خ اختبار']);
-    const ktotalKey = findColumn(keys, ['المجموع']);
-
-    const khw = getNumericValue(studentRow, khwKey);
-    const kact = getNumericValue(studentRow, kactKey);
-    const kpart = getNumericValue(studentRow, kpartKey);
-    const ktest = getNumericValue(studentRow, ktestKey);
-    const ktotal = getNumericValue(studentRow, ktotalKey);
-
-    summaryRowsContainer.innerHTML = `
-      <div class="summary-row"><span class="label">الواجبات</span><span class="value highlight">${khw.toFixed(2)}</span></div>
-      <div class="summary-row"><span class="label">الأنشطة</span><span class="value highlight">${kact.toFixed(2)}</span></div>
-      <div class="summary-row"><span class="label">المشاركة</span><span class="value highlight">${kpart.toFixed(2)}</span></div>
-      <div class="summary-row"><span class="label">الاختبار</span><span class="value highlight">${ktest.toFixed(2)}</span></div>
-      <div class="summary-total"><span class="label">المجموع</span><span class="value">${ktotal.toFixed(2)}</span></div>
-    `;
-  }
-
-  card.classList.add('active');
-  noData.style.display = 'none';
-  document.getElementById('unitSelector').style.display = 'block';
-}
-
-window.onload = function() {
-  loadExcelFile();
-  document.getElementById('studentIdInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') searchStudent();
-  });
-};
-</script>
-</body>
-</html>
+      <span class="sub-title">بعد إضافة در
