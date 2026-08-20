@@ -557,7 +557,6 @@ function loadExcelFile() {
       });
       populateUnitButtons();
       document.getElementById('unitSelector').style.display = 'none';
-      // ===== الصفحة الافتراضية: أول صفحة غير الخلاصة، أو الخلاصة إذا كانت الوحيدة =====
       const unitSheets = sheetNames.filter(name => !name.includes('خلاصة'));
       const summarySheets = sheetNames.filter(name => name.includes('خلاصة'));
       const defaultSheet = unitSheets.length > 0 ? unitSheets[0] : (summarySheets.length > 0 ? summarySheets[0] : sheetNames[0]);
@@ -574,11 +573,9 @@ function populateUnitButtons() {
   const group = document.getElementById('unitBtnGroup');
   group.innerHTML = '';
   
-  // ===== الطريقة الجديدة: كل الصفحات وحدات، ما عدا "خلاصة" =====
   const summarySheets = sheetNames.filter(name => name.includes('خلاصة'));
   const unitSheets = sheetNames.filter(name => !name.includes('خلاصة'));
 
-  // نرتب الوحدات حسب ظهورها في الملف (أو أبجدياً)
   unitSheets.sort();
 
   unitSheets.forEach((name) => {
@@ -757,6 +754,7 @@ function displayStudentData(studentId, sheetName) {
 
     let html = '';
 
+    // ===== جدول الواجبات (الترتيب: الدرجة | الدرس) =====
     let hwHtml = '';
     for (let i = 0; i < hwKeys.length; i += 2) {
       const k1 = hwKeys[i];
@@ -769,21 +767,22 @@ function displayStudentData(studentId, sheetName) {
       }
       const label1 = k1.replace(/واجب\s*/g, '').trim() || k1;
       hwHtml += `<tr>
-        <td style="background-color: #eaf6ef; font-weight: 600;">${label1}</td>
         <td><span class="grade-value">${val1}</span></td>
-        ${k2 ? `<td style="background-color: #eaf6ef; font-weight: 600;">${label2}</td><td><span class="grade-value">${val2}</span></td>` : `<td style="background-color: #eaf6ef; color: #a0aec0; font-weight: 400;">---</td><td style="color: #a0aec0; font-weight: 400;">---</td>`}
+        <td style="background-color: #eaf6ef; font-weight: 600;">${label1}</td>
+        ${k2 ? `<td><span class="grade-value">${val2}</span></td><td style="background-color: #eaf6ef; font-weight: 600;">${label2}</td>` : `<td style="color: #a0aec0; font-weight: 400;">---</td><td style="background-color: #eaf6ef; color: #a0aec0; font-weight: 400;">---</td>`}
       </tr>`;
     }
     html += `
       <div class="table-container hw-table">
         <div class="table-title">📝 الواجبات</div>
         <table>
-          <thead><tr><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th></tr></thead>
-        <tbody>${hwHtml || '<tr><td colspan="4" style="color:#a0aec0;">لا توجد واجبات</td></tr>'}</tbody>
-        ${hwWeightedKey ? `<tfoot><tr><td colspan="4" style="background:#f0fff4; color:#276749;">الدرجة الموزونة: <span>${hwWeighted.toFixed(2)}</span></td></tr></tfoot>` : ''}
-      </table>
-    </div>`;
+          <thead><tr><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th></tr></thead>
+          <tbody>${hwHtml || '<tr><td colspan="4" style="color:#a0aec0;">لا توجد واجبات</td></tr>'}</tbody>
+          ${hwWeightedKey ? `<tfoot><tr><td colspan="4" style="background:#f0fff4; color:#276749;">الدرجة الموزونة: <span>${hwWeighted.toFixed(2)}</span></td></tr></tfoot>` : ''}
+        </table>
+      </div>`;
 
+    // ===== جدول الأنشطة (الترتيب: الدرجة | الدرس) =====
     let actHtml = '';
     for (let i = 0; i < actKeys.length; i += 2) {
       const k1 = actKeys[i];
@@ -796,20 +795,20 @@ function displayStudentData(studentId, sheetName) {
       }
       const label1 = k1.replace(/نشاط\s*/g, '').trim() || k1;
       actHtml += `<tr>
-        <td style="background-color: #fef3e8; font-weight: 600;">${label1}</td>
         <td><span class="grade-value">${val1}</span></td>
-        ${k2 ? `<td style="background-color: #fef3e8; font-weight: 600;">${label2}</td><td><span class="grade-value">${val2}</span></td>` : `<td style="background-color: #fef3e8; color: #a0aec0; font-weight: 400;">---</td><td style="color: #a0aec0; font-weight: 400;">---</td>`}
+        <td style="background-color: #fef3e8; font-weight: 600;">${label1}</td>
+        ${k2 ? `<td><span class="grade-value">${val2}</span></td><td style="background-color: #fef3e8; font-weight: 600;">${label2}</td>` : `<td style="color: #a0aec0; font-weight: 400;">---</td><td style="background-color: #fef3e8; color: #a0aec0; font-weight: 400;">---</td>`}
       </tr>`;
     }
     html += `
       <div class="table-container act-table">
         <div class="table-title">🎯 الأنشطة</div>
         <table>
-          <thead><tr><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th></tr></thead>
-        <tbody>${actHtml || '<tr><td colspan="4" style="color:#a0aec0;">لا توجد أنشطة</td></tr>'}</tbody>
-        ${actWeightedKey ? `<tfoot><tr><td colspan="4" style="background:#fffbeb; color:#c05621;">الدرجة الموزونة: <span>${actWeighted.toFixed(2)}</span></td></tr></tfoot>` : ''}
-      </table>
-    </div>`;
+          <thead><tr><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th></tr></thead>
+          <tbody>${actHtml || '<tr><td colspan="4" style="color:#a0aec0;">لا توجد أنشطة</td></tr>'}</tbody>
+          ${actWeightedKey ? `<tfoot><tr><td colspan="4" style="background:#fffbeb; color:#c05621;">الدرجة الموزونة: <span>${actWeighted.toFixed(2)}</span></td></tr></tfoot>` : ''}
+        </table>
+      </div>`;
 
     hwActContainer.innerHTML = html;
 
