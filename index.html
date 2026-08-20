@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -559,7 +558,8 @@ function loadExcelFile() {
       document.getElementById('unitSelector').style.display = 'none';
       const unitSheets = sheetNames.filter(name => !name.includes('خلاصة'));
       const summarySheets = sheetNames.filter(name => name.includes('خلاصة'));
-      const defaultSheet = unitSheets.length > 0 ? unitSheets[0] : (summarySheets.length > 0 ? summarySheets[0] : sheetNames[0]);
+      // ===== التعديل: الخلاصة هي الافتراضية =====
+      const defaultSheet = summarySheets.length > 0 ? summarySheets[0] : (unitSheets.length > 0 ? unitSheets[0] : sheetNames[0]);
       currentSheetName = defaultSheet;
       highlightActiveButton(defaultSheet);
     })
