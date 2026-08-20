@@ -828,13 +828,12 @@ function displayStudentData(studentId, sheetName) {
     document.getElementById('test1Val').textContent = getValue(studentRow, testKey);
     document.getElementById('test2Val').textContent = getValue(studentRow, projectKey);
 
+    // ===== خلاصة الوحدة (بدون المشروع) =====
     const khwKey = findColumn(keys, ['خ واجب']);
     const kactKey = findColumn(keys, ['خ نشاط']);
     const kpartKey = findColumn(keys, ['خ مشاركه']);
     const ktestKey = findColumn(keys, ['خ اختبار']);
     const ktotalKey = findColumn(keys, ['المجموع']);
-
-    const projectVal = getNumericValue(studentRow, projectKey);
 
     const khw = getNumericValue(studentRow, khwKey);
     const kact = getNumericValue(studentRow, kactKey);
@@ -847,7 +846,6 @@ function displayStudentData(studentId, sheetName) {
       <div class="summary-row"><span class="label">الأنشطة</span><span class="value highlight">${kact.toFixed(2)}</span></div>
       <div class="summary-row"><span class="label">المشاركة</span><span class="value highlight">${kpart.toFixed(2)}</span></div>
       <div class="summary-row"><span class="label">الاختبار</span><span class="value highlight">${ktest.toFixed(2)}</span></div>
-      <div class="summary-row"><span class="label">المشروع</span><span class="value highlight">${projectVal.toFixed(2)}</span></div>
       <div class="summary-total"><span class="label">المجموع</span><span class="value">${ktotal.toFixed(2)}</span></div>
     `;
   }
