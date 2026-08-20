@@ -575,9 +575,8 @@ function populateUnitButtons() {
   const summarySheets = sheetNames.filter(name => name.includes('خلاصة'));
   const unitSheets = sheetNames.filter(name => !name.includes('خلاصة'));
 
-  // ===== تم إلغاء الترتيب الأبجدي =====
-  // unitSheets.sort(); 
-  // الآن تظهر الأوراق بنفس ترتيبها في ملف Excel
+  // ===== تم إلغاء الترتيب الأبجدي - الآن حسب ترتيب الأوراق في Excel =====
+  // unitSheets.sort();
 
   unitSheets.forEach((name) => {
     const btn = document.createElement('button');
@@ -741,4 +740,9 @@ function displayStudentData(studentId, sheetName) {
     summarySection.classList.remove('summary-special');
     summaryTitle.innerHTML = `
       <span class="main-title">📊 خلاصة الوحدة</span>
-      <span class="sub-title">بعد إضافة در
+      <span class="sub-title">بعد إضافة درجات المشروع</span>
+    `;
+
+    const weightedKeys = keys.filter(k => k.includes('موزونه'));
+    const hwWeightedKey = weightedKeys.length > 0 ? weightedKeys[0] : null;
+    const
