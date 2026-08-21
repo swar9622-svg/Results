@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>استعلام درجات الطالب</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif; }
+    body { background: #eef2f7; padding: 1.5rem 1rem; direction: rtl; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; }
+
+    @keyframes fadeSlideUp {
+      0% { opacity: 0; transform: translateY(40px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes headerGlow {
+      0% { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); }
+      100% { box-shadow: 0 8px 40px rgba(74, 144, 217, 0.5), 0 0 60px rgba(108, 180, 238, 0.2); }
+    }
+    @keyframes elasticBounce {
+      0% { opacity: 0; transform: scale(0.8) translateY(30px); }
+      60% { opacity: 1; transform: scale(1.02) translateY(-5px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes softAppear {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .container { max-width: 800px; width: 100%; margin: 0 auto; animation: fadeSlideUp 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+
+    .header {
+      background: linear-gradient(135deg, #4A90D9, #6CB4EE);
+      color: #fff;
+      padding: 1.2rem 1.5rem;
+      border-radius: 1.5rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 900;
+      margin-bottom: 1.8rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      position: relative;
+      overflow: hidden;
+      animation: headerGlow 3s ease-in-out infinite alternate;
+    }
+    .header::after { content: "📘"; position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); font-size: 2.2rem; opacity: 0.15; }
+
+    .search-box {
+      background: #fff;
+      border-radius: 1.2rem;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      flex-wrap: wrap;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      border: 1px solid #e2e8f0;
+      animation: softAppear 1s ease 0.2s both;
+      transition: 0.4s ease;
+    }
+    .search-box.hidden { display: none !important; }
+    .search-box input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 1rem;
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+      outline: none;
+      background: #f9fafc;
+      transition: 0.2s;
+      min-width: 140px;
+    }
+    .search-box input:focus { border-color: #4A90D9; background: #fff; box-shadow: 0 0 0 3px rgba(74,144,217,0.15); }
+    .search-box button {
+      background: #4A90D9;
+      color: #fff;
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: 1rem;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.15s;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(74,144,217,0.3);
+    }
+    .search-box button:active { transform: scale(0.96); opacity: 0.8; }
+
+    .unit-selector {
+      background: #fff;
+      border-radius: 1.2rem;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      border: 1px solid #e2e8f0;
+      animation: softAppear 1s ease 0.4s both;
+      display: none;
+    }
+    .unit-selector .unit-label {
+      text-align: center;
+      font-weight: 700;
+      color: #4a5568;
+      font-size: 0.95rem;
+      margin-bottom: 0.8rem;
+    }
+    .unit-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      justify-content: center;
+    }
+    .unit-btn-group .unit-btn {
+      flex: 1 1 calc(50% - 0.6rem);
+      max-width: calc(50% - 0.6rem);
+      padding: 0.6rem 0.2rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 0.8rem;
+      background: #f9fafc;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #4a5568;
+      cursor: pointer;
+      transition: 0.2s;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .unit-btn-group .unit-btn:hover {
+      background: #edf2f7;
+      border-color: #b0c4de;
+      transform: translateY(-2px);
+    }
+    .unit-btn-group .unit-btn.active {
+      background: #4A90D9;
+      color: #fff;
+      border-color: #4A90D9;
+      box-shadow: 0 4px 12px rgba(74,144,217,0.3);
+    }
+    .unit-btn-group .unit-btn-full {
+      flex: 1 1 100%;
+      max-width: 100%;
+      padding: 0.6rem 0.2rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 0.8rem;
+      background: #f9fafc;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #4a5568;
+      cursor: pointer;
+      transition: 0.2s;
+      text-align: center;
+    }
+    .unit-btn-group .unit-btn-full:hover {
+      background: #edf2f7;
+      border-color: #b0c4de;
+      transform: translateY(-2px);
+    }
+    .unit-btn-group .unit-btn-full.active {
+      background: #9f7aea;
+      color: #fff;
+      border-color: #9f7aea;
+      box-shadow: 0 4px 12px rgba(159, 122, 234, 0.3);
+    }
+    @media (max-width: 480px) {
+      .unit-btn-group .unit-btn {
+        flex: 1 1 calc(50% - 0.4rem);
+        max-width: calc(50% - 0.4rem);
+        font-size: 0.85rem;
+        padding: 0.5rem 0.1rem;
+      }
+      .unit-btn-group .unit-btn-full {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.1rem;
+      }
+    }
+
+    .student-card {
+      background: #fff;
+      border-radius: 2rem;
+      padding: 1.8rem 1.5rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.07);
+      margin-bottom: 1.5rem;
+      display: none;
+      border: 1px solid #edf2f7;
+      animation: elasticBounce 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    .student-card.active { display: block; }
+
+    .student-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #4A90D9;
+      padding-bottom: 0.7rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+    .student-name { font-size: 1.5rem; font-weight: 800; color: #1a202c; }
+    .student-class { font-size: 1rem; font-weight: 600; color: #4a5568; background: #edf2f7; padding: 0.25rem 1.2rem; border-radius: 2rem; }
+
+    .table-container {
+      margin-bottom: 1.8rem;
+      border-radius: 1.2rem;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 2px solid #e2e8f0;
+    }
+    .table-container .table-title {
+      background: #1a2a6c;
+      color: #fff;
+      padding: 0.4rem 1.2rem;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+    .table-container table { width: 100%; border-collapse: collapse; background: #fff; }
+    .table-container table th, .table-container table td {
+      padding: 0.5rem 0.3rem;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+      font-size: 0.95rem;
+    }
+    .table-container table td { font-weight: 600; color: #1a202c; }
+    .table-container table .grade-value { background: #f7fafc; border-radius: 0.5rem; padding: 0.1rem 0.6rem; display: inline-block; min-width: 32px; }
+    .table-container tfoot td { font-size: 1.2rem !important; font-weight: 800 !important; padding: 0.6rem 0.3rem; border-top: 2px solid #cbd5e0; }
+
+    .hw-table { border-color: #48bb78; }
+    .hw-table .table-title { background: #276749; }
+    .act-table { border-color: #ed8936; }
+    .act-table .table-title { background: #c05621; }
+    .part-table { border-color: #9f7aea; }
+    .part-table .table-title { background: #6b46c1; }
+    .test-table { border-color: #fc8181; }
+    .test-table .table-title { background: #c53030; }
+
+    .part-table td { padding: 0.4rem 0.2rem; }
+    .part-table .main-value { font-weight: 800; font-size: 1.4rem; color: #1a202c; }
+    .test-table td { padding: 0.4rem 0.2rem; }
+    .test-table .main-value { font-weight: 800; font-size: 1.4rem; color: #1a202c; }
+
+    .hw-table td, .hw-table .grade-value,
+    .act-table td, .act-table .grade-value {
+      font-size: 1.4rem !important;
+      font-weight: 900 !important;
+    }
+
+    .summary-section {
+      background: #f7fafc;
+      border-radius: 1.2rem;
+      padding: 1rem 1.2rem;
+      margin-top: 1.5rem;
+      border: 2px solid #e2e8f0;
+    }
+    .summary-section .summary-title {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+      border-bottom: 3px solid #4A90D9;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .summary-section .summary-title .main-title {
+      font-weight: 900;
+      font-size: 1.3rem;
+      color: #1a202c;
+    }
+    .summary-section .summary-title .sub-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #4A90D9;
+      background: #e8f0fe;
+      padding: 0.2rem 1.2rem;
+      border-radius: 2rem;
+      display: inline-block;
+    }
+    .summary-section .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0.2rem;
+      border-bottom: 1px dashed #cbd5e0;
+      font-size: 1.2rem;
+      font-weight: 900;
+      transition: 0.2s;
+      cursor: default;
+    }
+    .summary-section .summary-row:hover {
+      background: rgba(74, 144, 217, 0.05);
+      border-radius: 0.8rem;
+      padding: 0.6rem 0.8rem;
+      transform: scale(1.01);
+    }
+    .summary-section .summary-row:last-child { border-bottom: none; }
+    .summary-section .summary-row .label {
+      color: #2d3748;
+      font-weight: 900;
+      font-size: 1.2rem;
+    }
+    .summary-section .summary-row .value {
+      font-weight: 900;
+      color: #1a202c;
+      font-size: 1.3rem;
+    }
+    .summary-section .summary-row .value.highlight { color: #4A90D9; }
+    .summary-section .summary-total {
+      background: #e2e8f0;
+      border-radius: 0.8rem;
+      padding: 0.7rem 0.8rem;
+      margin-top: 0.6rem;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 900;
+      font-size: 1.3rem;
+      border: 2px solid #a0aec0;
+      transition: 0.2s;
+    }
+    .summary-section .summary-total:hover {
+      background: #cbd5e0;
+      transform: scale(1.01);
+    }
+    .summary-section .summary-total .label { color: #2d3748; font-size: 1.3rem; }
+    .summary-section .summary-total .value { color: #4A90D9; font-size: 1.5rem; }
+
+    .summary-special {
+      background: linear-gradient(145deg, #f0f9ff, #e0f2fe) !important;
+      border: 2px solid #bae6fd !important;
+      border-radius: 1.8rem !important;
+      padding: 1.8rem 1.8rem !important;
+      box-shadow: 0 16px 40px rgba(14, 165, 233, 0.15) !important;
+    }
+    .summary-special .summary-title {
+      font-size: 1.8rem !important;
+      color: #0284c7 !important;
+      border-bottom: 4px solid #38bdf8 !important;
+      padding-bottom: 0.8rem !important;
+      margin-bottom: 1.5rem !important;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.04);
+      display: block !important;
+    }
+    .summary-special .summary-title .main-title {
+      font-size: 1.8rem !important;
+    }
+    .summary-special .summary-title .sub-title {
+      display: none !important;
+    }
+    .summary-special .summary-row {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(4px);
+      padding: 0.8rem 1.5rem !important;
+      border-radius: 1.2rem;
+      margin-bottom: 0.7rem;
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      transition: 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+      font-size: 1.2rem !important;
+    }
+    .summary-special .summary-row:hover {
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      transform: translateY(-3px) scale(1.02);
+    }
+    .summary-special .summary-row .label {
+      font-weight: 900;
+      color: #1e293b;
+      font-size: 1.2rem !important;
+    }
+    .summary-special .summary-row .value {
+      font-size: 1.5rem !important;
+      font-weight: 900;
+      padding: 0.2rem 1.8rem;
+      border-radius: 3rem;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .summary-special .row-hw .value { color: #16a34a; background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .summary-special .row-act .value { color: #ea580c; background: #fff7ed; border: 1px solid #fed7aa; }
+    .summary-special .row-part .value { color: #9333ea; background: #faf5ff; border: 1px solid #e9d5ff; }
+    .summary-special .row-test .value { color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; }
+
+    .summary-special .summary-total {
+      background: #ffffff !important;
+      border: 2px solid #c53030 !important;
+      border-radius: 1.2rem !important;
+      padding: 0 !important;
+      margin-top: 1.2rem !important;
+      box-shadow: 0 8px 24px rgba(197, 48, 48, 0.2) !important;
+      overflow: hidden;
+      transition: 0.3s;
+      display: block !important;
+    }
+    .summary-special .summary-total:hover {
+      transform: scale(1.02);
+      box-shadow: 0 12px 32px rgba(197, 48, 48, 0.35) !important;
+    }
+    .summary-special .summary-total .total-header {
+      background: #c53030 !important;
+      color: #ffffff !important;
+      padding: 0.6rem 1rem !important;
+      text-align: center;
+      font-weight: 900;
+      font-size: 1.2rem;
+      border-bottom: 2px solid #c53030;
+    }
+    .summary-special .summary-total .total-value {
+      background: #ffffff !important;
+      color: #c53030 !important;
+      padding: 0.8rem 1rem !important;
+      text-align: center;
+      font-weight: 900;
+      font-size: 2.4rem;
+      letter-spacing: 1px;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: #718096;
+      font-weight: 600;
+      background: #fff;
+      border-radius: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      border: 1px solid #e2e8f0;
+      display: none;
+      font-size: 1.1rem;
+      animation: softAppear 0.6s ease;
+    }
+    .footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #a0aec0;
+      margin-top: 2.5rem;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 1rem;
+      font-weight: 500;
+    }
+    @media (max-width: 550px) {
+      .search-box { flex-direction: column; }
+      .search-box button { width: 100%; justify-content: center; }
+      .student-header { flex-direction: column; align-items: flex-start; }
+      .table-container table th, .table-container table td { font-size: 0.8rem; padding: 0.3rem 0.1rem; }
+      .table-container tfoot td { font-size: 1rem !important; }
+      .part-table .main-value { font-size: 1.1rem; }
+      .test-table .main-value { font-size: 1.1rem; }
+      .hw-table td, .hw-table .grade-value,
+      .act-table td, .act-table .grade-value {
+        font-size: 1.1rem !important;
+        font-weight: 900 !important;
+      }
+      .summary-section .summary-title .main-title { font-size: 1.1rem; }
+      .summary-section .summary-title .sub-title { font-size: 0.8rem; }
+      .summary-special .summary-row { padding: 0.5rem 0.8rem !important; }
+      .summary-special .summary-row .value { font-size: 1.1rem !important; padding: 0.1rem 1rem; }
+      .summary-special .summary-total .total-value { font-size: 1.8rem !important; }
+      .summary-section .summary-row { font-size: 1rem; }
+      .summary-section .summary-row .value { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">📘 استعلام درجات الطالب</div>
+
+  <div class="search-box" id="searchBox">
+    <input type="text" id="studentIdInput" placeholder="أدخل رقم الطالب (5 أرقام)" maxlength="5" inputmode="numeric" />
+    <button onclick="searchStudent()">🔍 بحث</button>
+  </div>
+
+  <div class="unit-selector" id="unitSelector">
+    <div class="unit-label">📌 لمشاهدة تفاصيل الدرجات اختر الوحدة</div>
+    <div class="unit-btn-group" id="unitBtnGroup">
+    </div>
+  </div>
+
+  <div id="studentCard" class="student-card">
+    <div class="student-header">
+      <span class="student-name" id="studentName">-</span>
+      <span class="student-class" id="studentClass">-</span>
+    </div>
+
+    <div id="hwActContainer"></div>
+
+    <div class="table-container part-table" id="partTable">
+      <div class="table-title">⚠️ المخالفات</div>
+      <table>
+        <thead><tr><th>الغياب</th><th>التأخر</th><th>المخالفات</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="main-value" id="absentCount">-</span></td>
+            <td><span class="main-value" id="lateCount">-</span></td>
+            <td><span class="main-value" id="violationCount">-</span></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="background:#f4ecf7; font-weight:700; color:#6b46c1; font-size:1.4rem;">
+              درجة المشاركة: <span id="participationScore" style="font-weight:800;">-</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-container test-table" id="testTable">
+      <div class="table-title">📋 الاختبار والمشروع</div>
+      <table>
+        <thead><tr><th>الاختبار</th><th>المشروع</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="main-value" id="test1Val">-</span></td>
+            <td><span class="main-value" id="test2Val">-</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="summarySectionWrapper">
+      <div class="summary-section" id="summarySection">
+        <div class="summary-title" id="summaryTitle">
+          <span class="main-title">📊 خلاصة الوحدة</span>
+          <span class="sub-title">بعد إضافة درجات المشروع</span>
+        </div>
+        <div id="summaryRowsContainer">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="noData" class="no-data">❌ لا توجد بيانات لهذا الرقم</div>
+  <div class="footer">نظام الاستعلام المتطور - يعمل مع ملف data.xlsx</div>
+</div>
+
+<script>
+let workbookData = null;
+let sheetNames = [];
+let currentStudentId = '';
+let currentSheetName = '';
+
+function loadExcelFile() {
+  fetch('data.xlsx')
+    .then(response => {
+      if (!response.ok) throw new Error('ملف data.xlsx غير موجود');
+      return response.arrayBuffer();
+    })
+    .then(arrayBuffer => {
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      sheetNames = workbook.SheetNames;
+      workbookData = {};
+      sheetNames.forEach(name => {
+        const sheet = workbook.Sheets[name];
+        workbookData[name] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      });
+      populateUnitButtons();
+      document.getElementById('unitSelector').style.display = 'none';
+      const unitSheets = sheetNames.filter(name => !name.includes('خلاصة'));
+      const summarySheets = sheetNames.filter(name => name.includes('خلاصة'));
+      const defaultSheet = summarySheets.length > 0 ? summarySheets[0] : (unitSheets.length > 0 ? unitSheets[0] : sheetNames[0]);
+      currentSheetName = defaultSheet;
+      highlightActiveButton(defaultSheet);
+    })
+    .catch(err => {
+      console.error(err);
+      alert('❌ لم يتم العثور على ملف data.xlsx.\nتأكد من وجوده في نفس المجلد.');
+    });
+}
+
+function populateUnitButtons() {
+  const group = document.getElementById('unitBtnGroup');
+  group.innerHTML = '';
+  
+  const summarySheets = sheetNames.filter(name => name.includes('خلاصة'));
+  const unitSheets = sheetNames.filter(name => !name.includes('خلاصة'));
+
+  unitSheets.forEach((name) => {
+    const btn = document.createElement('button');
+    btn.className = 'unit-btn';
+    btn.textContent = name;
+    btn.dataset.sheet = name;
+    btn.onclick = function() { switchUnit(name); };
+    group.appendChild(btn);
+  });
+
+  if (summarySheets.length > 0) {
+    const btn = document.createElement('button');
+    btn.className = 'unit-btn-full';
+    btn.textContent = '📊 الخلاصة';
+    btn.dataset.sheet = summarySheets[0];
+    btn.onclick = function() { switchUnit(summarySheets[0]); };
+    group.appendChild(btn);
+  } else {
+    const btn = document.createElement('button');
+    btn.className = 'unit-btn-full';
+    btn.textContent = '📊 الخلاصة (غير متوفرة)';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    group.appendChild(btn);
+  }
+}
+
+function highlightActiveButton(sheetName) {
+  const btns = document.querySelectorAll('#unitBtnGroup .unit-btn, #unitBtnGroup .unit-btn-full');
+  btns.forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.sheet === sheetName) {
+      btn.classList.add('active');
+    }
+  });
+}
+
+function switchUnit(sheetName) {
+  currentSheetName = sheetName;
+  highlightActiveButton(sheetName);
+  if (currentStudentId) {
+    displayStudentData(currentStudentId, currentSheetName);
+  } else {
+    const card = document.getElementById('studentCard');
+    card.classList.remove('active');
+    document.getElementById('noData').style.display = 'block';
+    document.getElementById('noData').textContent = '🔍 يرجى البحث عن طالب أولاً';
+  }
+}
+
+function searchStudent() {
+  const input = document.getElementById('studentIdInput');
+  const id = input.value.trim();
+  if (!id) { alert('يرجى إدخال رقم الطالب'); return; }
+  if (!/^\d{5}$/.test(id)) { alert('رقم الطالب يجب أن يكون 5 أرقام'); return; }
+  currentStudentId = id;
+  displayStudentData(id, currentSheetName);
+}
+
+function findColumn(keys, patterns) {
+  for (let p of patterns) {
+    const found = keys.find(k => k.includes(p));
+    if (found) return found;
+  }
+  return null;
+}
+
+function getValue(row, key, defaultValue = '-') {
+  if (!key) return defaultValue;
+  const val = row[key];
+  if (val === undefined || val === null || val === '') return defaultValue;
+  return val;
+}
+
+function getNumericValue(row, key, fallback = 0) {
+  const val = row[key];
+  if (val === undefined || val === null || val === '') return fallback;
+  const num = parseFloat(val);
+  return isNaN(num) ? fallback : num;
+}
+
+function displayStudentData(studentId, sheetName) {
+  const card = document.getElementById('studentCard');
+  const noData = document.getElementById('noData');
+  const searchBox = document.getElementById('searchBox');
+  card.classList.remove('active');
+  noData.style.display = 'none';
+
+  if (!workbookData || !workbookData[sheetName]) {
+    noData.style.display = 'block';
+    noData.textContent = '❌ لا توجد بيانات للصفحة المحددة';
+    return;
+  }
+
+  const rows = workbookData[sheetName];
+  if (rows.length === 0) {
+    noData.style.display = 'block';
+    noData.textContent = '❌ الصفحة الحالية فارغة';
+    return;
+  }
+
+  const firstKey = Object.keys(rows[0])[0] || '';
+  const studentRow = rows.find(row => {
+    const val = row[firstKey];
+    return val && val.toString().trim() === studentId;
+  });
+
+  if (!studentRow) {
+    card.classList.remove('active');
+    noData.style.display = 'block';
+    noData.textContent = '❌ لم يتم العثور على طالب برقم ' + studentId + ' في صفحة "' + sheetName + '"';
+    return;
+  }
+
+  searchBox.classList.add('hidden');
+
+  const keys = Object.keys(studentRow);
+  const nameKey = keys[1] || '';
+  const classKey = keys[2] || '';
+  document.getElementById('studentName').textContent = getValue(studentRow, nameKey);
+  document.getElementById('studentClass').textContent = getValue(studentRow, classKey);
+
+  const isSummaryPage = sheetName.includes('خلاصة');
+
+  const hwActContainer = document.getElementById('hwActContainer');
+  const partTable = document.getElementById('partTable');
+  const testTable = document.getElementById('testTable');
+  const summarySection = document.getElementById('summarySection');
+  const summaryTitle = document.getElementById('summaryTitle');
+  const summaryRowsContainer = document.getElementById('summaryRowsContainer');
+
+  if (isSummaryPage) {
+    hwActContainer.style.display = 'none';
+    partTable.style.display = 'none';
+    testTable.style.display = 'none';
+    summarySection.style.display = 'block';
+    summarySection.classList.add('summary-special');
+    summaryTitle.innerHTML = '<span class="main-title">📊 الخلاصة النهائية</span>';
+
+    const hw = getNumericValue(studentRow, findColumn(keys, ['واجب']));
+    const act = getNumericValue(studentRow, findColumn(keys, ['نشاط']));
+    const part = getNumericValue(studentRow, findColumn(keys, ['مشاركه']));
+    const test = getNumericValue(studentRow, findColumn(keys, ['اختبار']));
+    const total = getNumericValue(studentRow, findColumn(keys, ['المجموع']));
+
+    summaryRowsContainer.innerHTML = `
+      <div class="summary-row row-hw"><span class="label">📝 الواجبات</span><span class="value">${hw.toFixed(2)}</span></div>
+      <div class="summary-row row-act"><span class="label">🎯 الأنشطة</span><span class="value">${act.toFixed(2)}</span></div>
+      <div class="summary-row row-part"><span class="label">👥 المشاركة</span><span class="value">${part.toFixed(2)}</span></div>
+      <div class="summary-row row-test"><span class="label">📋 الاختبارات</span><span class="value">${test.toFixed(2)}</span></div>
+      <div class="summary-total">
+        <div class="total-header">🏆 المجموع الكلي</div>
+        <div class="total-value">${total.toFixed(2)}</div>
+      </div>
+    `;
+  } else {
+    hwActContainer.style.display = 'block';
+    partTable.style.display = 'block';
+    testTable.style.display = 'block';
+    summarySection.style.display = 'block';
+    summarySection.classList.remove('summary-special');
+    summaryTitle.innerHTML = `
+      <span class="main-title">📊 خلاصة الوحدة</span>
+      <span class="sub-title">بعد إضافة درجات المشروع</span>
+    `;
+
+    const weightedKeys = keys.filter(k => k.includes('موزونه'));
+    const hwWeightedKey = weightedKeys.length > 0 ? weightedKeys[0] : null;
+    const actWeightedKey = weightedKeys.length > 1 ? weightedKeys[1] : null;
+    const hwWeighted = getNumericValue(studentRow, hwWeightedKey);
+    const actWeighted = getNumericValue(studentRow, actWeightedKey);
+
+    const hwKeys = keys.filter(k => k.includes('واجب') && !k.includes('موزونه') && !k.includes('خ'));
+    const actKeys = keys.filter(k => k.includes('نشاط') && !k.includes('موزونه') && !k.includes('خ'));
+
+    let html = '';
+
+    // ===== جدول الواجبات (الترتيب: الدرس | الدرجة) =====
+    let hwHtml = '';
+    for (let i = 0; i < hwKeys.length; i += 2) {
+      const k1 = hwKeys[i];
+      const k2 = hwKeys[i+1];
+      const val1 = getValue(studentRow, k1);
+      let val2 = '-', label2 = '';
+      if (k2) {
+        val2 = getValue(studentRow, k2);
+        label2 = k2.replace(/واجب\s*/g, '').trim() || k2;
+      }
+      const label1 = k1.replace(/واجب\s*/g, '').trim() || k1;
+      hwHtml += `<tr>
+        <td style="background-color: #eaf6ef; font-weight: 600;">${label1}</td>
+        <td><span class="grade-value">${val1}</span></td>
+        ${k2 ? `<td style="background-color: #eaf6ef; font-weight: 600;">${label2}</td><td><span class="grade-value">${val2}</span></td>` : `<td style="background-color: #eaf6ef; color: #a0aec0; font-weight: 400;">---</td><td style="color: #a0aec0; font-weight: 400;">---</td>`}
+      </tr>`;
+    }
+    html += `
+      <div class="table-container hw-table">
+        <div class="table-title">📝 الواجبات</div>
+        <table>
+          <thead><tr><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرس</th><th style="background-color: #c3e6cb; color: #155724; font-weight: 800;">الدرجة</th></tr></thead>
+          <tbody>${hwHtml || '<tr><td colspan="4" style="color:#a0aec0;">لا توجد واجبات</td></tr>'}</tbody>
+          ${hwWeightedKey ? `<tfoot><tr><td colspan="4" style="background:#f0fff4; color:#276749;">الدرجة الموزونة: <span>${hwWeighted.toFixed(2)}</span></td></tr></tfoot>` : ''}
+        </table>
+      </div>`;
+
+    // ===== جدول الأنشطة (الترتيب: الدرس | الدرجة) =====
+    let actHtml = '';
+    for (let i = 0; i < actKeys.length; i += 2) {
+      const k1 = actKeys[i];
+      const k2 = actKeys[i+1];
+      const val1 = getValue(studentRow, k1);
+      let val2 = '-', label2 = '';
+      if (k2) {
+        val2 = getValue(studentRow, k2);
+        label2 = k2.replace(/نشاط\s*/g, '').trim() || k2;
+      }
+      const label1 = k1.replace(/نشاط\s*/g, '').trim() || k1;
+      actHtml += `<tr>
+        <td style="background-color: #fef3e8; font-weight: 600;">${label1}</td>
+        <td><span class="grade-value">${val1}</span></td>
+        ${k2 ? `<td style="background-color: #fef3e8; font-weight: 600;">${label2}</td><td><span class="grade-value">${val2}</span></td>` : `<td style="background-color: #fef3e8; color: #a0aec0; font-weight: 400;">---</td><td style="color: #a0aec0; font-weight: 400;">---</td>`}
+      </tr>`;
+    }
+    html += `
+      <div class="table-container act-table">
+        <div class="table-title">🎯 الأنشطة</div>
+        <table>
+          <thead><tr><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرس</th><th style="background-color: #fdd5b5; color: #8b4513; font-weight: 800;">الدرجة</th></tr></thead>
+          <tbody>${actHtml || '<tr><td colspan="4" style="color:#a0aec0;">لا توجد أنشطة</td></tr>'}</tbody>
+          ${actWeightedKey ? `<tfoot><tr><td colspan="4" style="background:#fffbeb; color:#c05621;">الدرجة الموزونة: <span>${actWeighted.toFixed(2)}</span></td></tr></tfoot>` : ''}
+        </table>
+      </div>`;
+
+    hwActContainer.innerHTML = html;
+
+    const absentKey = findColumn(keys, ['غياب']);
+    const lateKey = findColumn(keys, ['تأخر']);
+    const violationKey = findColumn(keys, ['مخالفات']);
+    const partKey = findColumn(keys, ['المشاركه', 'المشاركة']);
+
+    document.getElementById('absentCount').textContent = getValue(studentRow, absentKey);
+    document.getElementById('lateCount').textContent = getValue(studentRow, lateKey);
+    document.getElementById('violationCount').textContent = getValue(studentRow, violationKey);
+    const partScore = getNumericValue(studentRow, partKey);
+    document.getElementById('participationScore').textContent = partScore.toFixed(2);
+
+    const testKey = findColumn(keys, ['اختبار']);
+    const projectKey = findColumn(keys, ['مشروع']);
+    document.getElementById('test1Val').textContent = getValue(studentRow, testKey);
+    document.getElementById('test2Val').textContent = getValue(studentRow, projectKey);
+
+    // ===== خلاصة الوحدة (بدون المشروع) =====
+    const khwKey = findColumn(keys, ['خ واجب']);
+    const kactKey = findColumn(keys, ['خ نشاط']);
+    const kpartKey = findColumn(keys, ['خ مشاركه']);
+    const ktestKey = findColumn(keys, ['خ اختبار']);
+    const ktotalKey = findColumn(keys, ['المجموع']);
+
+    const khw = getNumericValue(studentRow, khwKey);
+    const kact = getNumericValue(studentRow, kactKey);
+    const kpart = getNumericValue(studentRow, kpartKey);
+    const ktest = getNumericValue(studentRow, ktestKey);
+    const ktotal = getNumericValue(studentRow, ktotalKey);
+
+    summaryRowsContainer.innerHTML = `
+      <div class="summary-row"><span class="label">الواجبات</span><span class="value highlight">${khw.toFixed(2)}</span></div>
+      <div class="summary-row"><span class="label">الأنشطة</span><span class="value highlight">${kact.toFixed(2)}</span></div>
+      <div class="summary-row"><span class="label">المشاركة</span><span class="value highlight">${kpart.toFixed(2)}</span></div>
+      <div class="summary-row"><span class="label">الاختبار</span><span class="value highlight">${ktest.toFixed(2)}</span></div>
+      <div class="summary-total"><span class="label">المجموع</span><span class="value">${ktotal.toFixed(2)}</span></div>
+    `;
+  }
+
+  card.classList.add('active');
+  noData.style.display = 'none';
+  document.getElementById('unitSelector').style.display = 'block';
+}
+
+window.onload = function() {
+  loadExcelFile();
+  document.getElementById('studentIdInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') searchStudent();
+  });
+};
+</script>
+</body>
+</html>
